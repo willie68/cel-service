@@ -10,14 +10,24 @@ import (
 	"github.com/google/cel-go/checker/decls"
 	"github.com/google/cel-go/common/types"
 	"github.com/willie68/cel-service/pkg/model"
+	exprpb "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 )
 
 func ProcCel(celModel model.CelModel) (model.CelResult, error) {
+	var declList = make([]*exprpb.Decl, len(celModel.Context))
+	x := 0
+	for k := range celModel.Context {
+		declList[x] = decls.NewVar(k, decls.Dyn)
+		x++
+	}
 	env, err := cel.NewEnv(
 		cel.Declarations(
-			decls.NewIdent("data", decls.NewObjectType("google.protobuf.Struct"), nil),
+			declList...,
 		),
 	)
+	if err != nil {
+		log.Logger.Errorf("env declaration error: %s", err)
+	}
 	ast, issues := env.Compile(celModel.Expression)
 	if issues != nil && issues.Err() != nil {
 		log.Logger.Errorf("type-check error: %s", issues.Err())

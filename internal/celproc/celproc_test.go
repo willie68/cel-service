@@ -1,25 +1,50 @@
 package celproc
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/willie68/cel-service/pkg/model"
 )
 
-func TestToken(t *testing.T) {
+func TestTokenYaml(t *testing.T) {
 	ast := assert.New(t)
 
-	result, err := ProcCel(model.CelModel{
-		Context: map[string]interface{}{
-			"data": map[string]interface{}{
-				"value": 2,
-			},
-		},
-		Expression: "data.v1.value == 1",
-	})
+	ya, err := ioutil.ReadFile("../../test/data/data1.yaml")
 	ast.Nil(err)
-	ast.NotNil(result)
+	var celModels []model.CelModel
+	err = yaml.Unmarshal(ya, &celModels)
+	ast.Nil(err)
 
-	ast.True(result.Result)
+	for _, cm := range celModels {
+
+		result, err := ProcCel(cm)
+		ast.Nil(err)
+		ast.NotNil(result)
+
+		ast.True(result.Result)
+	}
+}
+
+func TestTokenJson(t *testing.T) {
+	ast := assert.New(t)
+
+	ya, err := ioutil.ReadFile("../../test/data/data1.json")
+	ast.Nil(err)
+	var celModels []model.CelModel
+	err = json.Unmarshal(ya, &celModels)
+	ast.Nil(err)
+
+	for _, cm := range celModels {
+
+		result, err := ProcCel(cm)
+		ast.Nil(err)
+		ast.NotNil(result)
+
+		ast.True(result.Result)
+	}
 }
