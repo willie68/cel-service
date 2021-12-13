@@ -17,13 +17,20 @@ message ContextValue {
         bool = 4;
         string = 5;
         bytes = 6;
+        map = 7;
     }
     Type type = 1;
     bytes value = 2;
+    map<string, ContextValue> vmap = 3;
 }
 
-message CelResult {
+message CelResponse {
     string Error = 1;
 	string Message = 2;
 	bool Result  = 3;
 }
+
+service EvalService {
+    rpc Evaluate(CelRequest) returns (CelResponse);
+}
+  
