@@ -1,0 +1,29 @@
+syntax = "proto3";
+package protofiles;
+
+option go_package = "./pkg/protofiles";
+
+message CelRequest {
+    map<string, ContextValue> Context = 1;
+    string Expression = 2;
+}
+
+message ContextValue {
+    enum Type {
+        int23 = 0;
+        int64 = 1;
+        double = 2;
+        float = 3;
+        bool = 4;
+        string = 5;
+        bytes = 6;
+    }
+    Type type = 1;
+    bytes value = 2;
+}
+
+message CelResult {
+    string Error = 1;
+	string Message = 2;
+	bool Result  = 3;
+}
