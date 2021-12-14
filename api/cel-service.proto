@@ -33,4 +33,3 @@ message CelResponse {
 service EvalService {
     rpc Evaluate(CelRequest) returns (CelResponse);
 }
-  
