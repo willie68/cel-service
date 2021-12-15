@@ -5,23 +5,20 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func TestTokenYaml(t *testing.T) {
+func TestYamlProto(t *testing.T) {
 	ast := assert.New(t)
-
-	celRequest := CelRequest{
-		Context: map[string]*ContextValue{
-			"data": {
-				Type: ContextValue_map,
-				Vmap: map[string]*ContextValue{
-					"value": {
-						Type:  1,
-						Value: []byte{0, 0, 0, 1},
-					},
-				},
-			},
+	jsonContext := map[string]interface{}{
+		"data": map[string]interface{}{
+			"value": 1,
 		},
+	}
+	structValue, err := structpb.NewStruct(jsonContext)
+	ast.Nil(err)
+	celRequest := CelRequest{
+		Context:    structValue,
 		Expression: "data.value == 1",
 	}
 

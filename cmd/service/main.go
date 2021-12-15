@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/willie68/cel-service/internal/celproc"
 	"github.com/willie68/cel-service/internal/logging"
 	log "github.com/willie68/cel-service/internal/logging"
 	"github.com/willie68/cel-service/pkg/protofiles"
@@ -25,11 +26,15 @@ type celServer struct {
 }
 
 func (c *celServer) Evaluate(ctx context.Context, req *protofiles.CelRequest) (*protofiles.CelResponse, error) {
-	res := protofiles.CelResponse{
-		Error: "not implemented yet",
-	}
+
+	res, err := celproc.GRPCProcCel(req)
 	log.Logger.Infof("req: %v, res: %v", req, res)
-	return &res, nil
+
+	if err != nil {
+		log.Logger.Errorf("failed to listen: %v", err)
+		return nil, err
+	}
+	return res, nil
 }
 
 func init() {

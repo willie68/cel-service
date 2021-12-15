@@ -1,10 +1,13 @@
 syntax = "proto3";
 package protofiles;
 
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+
 option go_package = "./pkg/protofiles";
 
 message CelRequest {
-    map<string, ContextValue> Context = 1;
+    google.protobuf.Struct Context = 1;
     string Expression = 2;
 }
 
@@ -20,8 +23,7 @@ message ContextValue {
         map = 7;
     }
     Type type = 1;
-    bytes value = 2;
-    map<string, ContextValue> vmap = 3;
+    google.protobuf.Any value = 2;
 }
 
 message CelResponse {

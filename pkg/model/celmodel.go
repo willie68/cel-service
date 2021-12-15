@@ -10,3 +10,8 @@ type CelResult struct {
 	Message string `yaml:"message" json:"message"`
 	Result  bool   `yaml:"result" json:"result"`
 }
+
+type TestCelModel struct {
+	Request CelModel `yaml:"request" json:"request"`
+	Result  bool     `yaml:"result" json:"result"`
+}

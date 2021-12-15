@@ -9,6 +9,7 @@ import (
 	log "github.com/willie68/cel-service/internal/logging"
 	"github.com/willie68/cel-service/pkg/protofiles"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var (
@@ -21,19 +22,19 @@ var (
 func runEvaluate(client protofiles.EvalServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	celRequest := protofiles.CelRequest{
-		Context: map[string]*protofiles.ContextValue{
-			"data": {
-				Type: protofiles.ContextValue_map,
-				Vmap: map[string]*protofiles.ContextValue{
-					"value": {
-						Type:  1,
-						Value: []byte{0, 0, 0, 1},
-					},
-				},
-			},
+	jsonContext := map[string]interface{}{
+		"data": map[string]interface{}{
+			"value": 1,
 		},
-		Expression: "data.value == 1",
+	}
+	structValue, err := structpb.NewStruct(jsonContext)
+	if err != nil {
+		log.Logger.Fatalf("structpb new: %v", client, err)
+	}
+
+	celRequest := protofiles.CelRequest{
+		Context:    structValue,
+		Expression: "int(data.value) == 1",
 	}
 
 	celResponse, err := client.Evaluate(ctx, &celRequest)
