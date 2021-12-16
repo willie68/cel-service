@@ -1,0 +1,1 @@
+service-cel-go.exe -p 9080 -c .\configs\service_local.yaml

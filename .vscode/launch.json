@@ -4,13 +4,29 @@
     // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
+
+        {
+            "name": "Launch cel grpc only service",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "cwd": "${workspaceFolder}",
+            "program": "./cmd/grpc/main.go"
+        },
         {
             "name": "Launch cel service",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "cwd": "${workspaceFolder}",
-            "program": "./cmd/service/main.go"
+            "program": "./cmd/service/main.go",
+            "args": [
+                "-c", 
+                "./configs/service_local.yaml",
+                "--grpctsl",
+                "true",
+            ]
         },
         {
             "name": "Launch cel cli",

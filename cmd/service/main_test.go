@@ -18,7 +18,6 @@ import (
 
 var (
 	serverAddr = "localhost:50051"
-	grpcServer *grpc.Server
 	client     protofiles.EvalServiceClient
 	conn       *grpc.ClientConn
 )
@@ -70,7 +69,7 @@ func initServer() {
 	var opts []grpc.ServerOption
 
 	grpcServer = grpc.NewServer(opts...)
-	protofiles.RegisterEvalServiceServer(grpcServer, newServer())
+	protofiles.RegisterEvalServiceServer(grpcServer, newCelServer())
 	grpcServer.Serve(lis)
 }
 

@@ -70,5 +70,5 @@ func main() {
 
 func initLogging() {
 	log.Logger.SetLevel(logging.Debug)
-	log.Logger.Init()
+	log.Logger.InitGelf()
 }
