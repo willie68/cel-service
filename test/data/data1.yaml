@@ -1,13 +1,17 @@
-- context:
-    data: 
-      value: 1
-  expression: "data.value == 1"
-- context:
-    data: 
-      value: 1
-      v1:
+- request:
+    context:
+      data: 
         value: 1
-      float: 1.0
-    user:
-      name: klaas
-  expression: "data.v1.value == 1 && data.float ==  1.0 && user.name == \"klaas\""
+    expression: "data.value == 1"
+  result: true  
+- request:
+    context:
+        data: 
+          value: 1
+          v1:
+            value: 1
+          float: 1.0
+        user:
+          name: klaas
+    expression: "data.v1.value == 1 && data.float ==  1.0 && user.name == \"klaas\""
+  result: true  

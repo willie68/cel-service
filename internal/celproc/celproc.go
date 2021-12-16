@@ -10,8 +10,27 @@ import (
 	"github.com/google/cel-go/checker/decls"
 	"github.com/google/cel-go/common/types"
 	"github.com/willie68/cel-service/pkg/model"
+	"github.com/willie68/cel-service/pkg/protofiles"
 	exprpb "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 )
+
+func GRPCProcCel(celRequest *protofiles.CelRequest) (*protofiles.CelResponse, error) {
+	context := celRequest.Context.AsMap()
+
+	celModel := model.CelModel{
+		Context:    context,
+		Expression: celRequest.Expression,
+	}
+
+	rep, err := ProcCel(celModel)
+	celResponse := protofiles.CelResponse{
+		Result: rep.Result,
+	}
+	if err != nil {
+		celResponse.Error = err.Error()
+	}
+	return &celResponse, err
+}
 
 func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	var declList = make([]*exprpb.Decl, len(celModel.Context))
