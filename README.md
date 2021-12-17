@@ -1,52 +1,84 @@
 # cel-service
-REST and gRPC service using cel
+REST and gRPC service for evaluating an expression using google cel (https://opensource.google/projects/cel)
 
-Its not intended to be a fully featured microservice framework, just a small starting point with the things i normally need to build up a small, fast go microservice.
-
-The project structure depends on this: https://github.com/golang-standards/project-layout
+This service is a small, fast go microservice based on go-micro (https://github.com/willie68/go-micro) a template for a simple go microservice.
 
 Features:
 
-- usage of Opentracing/jaeger
--  gelf logging
-- authorization with jwt
-- cached healthcheck, healthz and readyz endpoints
-- https/ssl and http for payload and metrics/healthcheck
-- metrics with Prometheus: https://prometheus.io/docs/guides/go-application/
-- Docker build with builder and target image
-- chi as the router framework
+- gRPC and HTTP JSON APIs
+- simple API to evaluate an expression
 - go 1.17
 
-## Prometheus integration
+## Installation
 
-You can switch on the prometheus integration simply by adding 
+As this service is not part of the docker hub, you have to build up your docker image yourself.
 
-```yaml
-metrics:
-  enable: true
+For this simply start then docker build 
+
+`docker build ./ -t mcs/cel-service:V1`
+
+The docker file is a 2 phase docker build. First building the binaries, than building the runnable image.
+
+You can start the image with
+
+`docker run --name cel-service -p 8443 -p 8080 mcs/cel-service:V1` 
+
+ 
+
+## Example http json
+
+in the api folder you will find a postman collection for this service using the http json interface, as the all the health and metrics endpoints.
+
+A simple curl example for the service:
+
+```sh
+curl --location --request POST 'https://127.0.0.1:9543/api/v1/evaluate' \
+--header 'apikey: 8723a34c54a53c70071cf86dfb1d8744' \
+--header 'Content-Type: application/json' \
+--data-raw '{"context": {"data": {"index": 1}},"expression": "int(data.index) == 1"}'
 ```
 
-to the service config.
+The result should be something like this:
 
-### How to add a new counter?
-
-Simply on the class, where you want to add a new counter (or something else) make a new variable with:
-
-```go
-var (
-  postConfigCounter = promauto.NewCounter(prometheus.CounterOpts{
-	 Name: "cel_post_config_total",
-     Help: "The total number of post config requests",
-  })
-)
+```json
+{
+  "error": null,
+  "message": "result ok: true",
+  "result": true
+}
 ```
 
-In the code where to count the events simply do an
 
 
+In case of an error in your evaluation you will get an special error response: 
 
-```go
-postConfigCounter.Inc()
+for an eval of:
+
+```json
+{
+  "context": {
+      "data": {
+          "index": 1
+      }
+  },
+  "expression": "data.index == 1"
+} 
 ```
 
- Thats all. More examples here: https://prometheus.io/docs/guides/go-application/
+
+
+```json
+{
+  "error": "no such overload",
+  "message": "program evaluation error: no such overload",
+  "result": false
+}
+```
+
+because you can't compare an float (which is `data.index` because in json every number is a float) with an int literal. (1 in cel is an int literal)
+
+see the cel project for further information. (https://opensource.google/projects/cel)
+
+## Example gPRC
+
+The service also expose a grpc server (with the default port 50051 with TSL). The definition of the service and the models you can find in the api folder (cel-service.proto)

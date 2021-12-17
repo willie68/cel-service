@@ -24,10 +24,9 @@ func GRPCProcCel(celRequest *protofiles.CelRequest) (*protofiles.CelResponse, er
 
 	rep, err := ProcCel(celModel)
 	celResponse := protofiles.CelResponse{
-		Result: rep.Result,
-	}
-	if err != nil {
-		celResponse.Error = err.Error()
+		Error:   rep.Error,
+		Message: rep.Message,
+		Result:  rep.Result,
 	}
 	return &celResponse, err
 }
@@ -51,7 +50,7 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	if issues != nil && issues.Err() != nil {
 		log.Logger.Errorf("type-check error: %v", issues.Err())
 		return model.CelResult{
-			Error:   issues.Err(),
+			Error:   fmt.Sprintf("%v", issues.Err()),
 			Message: issues.Err().Error(),
 		}, issues.Err()
 	}
@@ -59,7 +58,7 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	if err != nil {
 		log.Logger.Errorf("program construction error: %v", err)
 		return model.CelResult{
-			Error:   err,
+			Error:   fmt.Sprintf("%v", err),
 			Message: fmt.Sprintf("program construction error: %s", err.Error()),
 		}, err
 	}
@@ -69,7 +68,7 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 		log.Logger.Errorf("program evaluation error: %v", err)
 
 		return model.CelResult{
-			Error:   err,
+			Error:   fmt.Sprintf("%v", err),
 			Message: fmt.Sprintf("program evaluation error: %s", err.Error()),
 		}, err
 	}
@@ -81,7 +80,7 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 		}, nil
 	case *types.Err:
 		return model.CelResult{
-			Error:   err,
+			Error:   fmt.Sprintf("%v", err),
 			Message: fmt.Sprintf("unknown cel engine error: %v", err),
 			Result:  false,
 		}, err

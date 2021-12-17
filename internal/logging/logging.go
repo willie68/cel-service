@@ -40,9 +40,9 @@ type serviceLogger struct {
 var Logger serviceLogger
 
 /*
-InitGelf initialise gelf logging
+Init initialise logging
 */
-func (s *serviceLogger) InitGelf() {
+func (s *serviceLogger) Init() {
 	s.gelfActive = false
 	if s.GelfURL != "" {
 		s.c, _ = golf.NewClient()

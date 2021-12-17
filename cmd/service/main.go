@@ -353,7 +353,7 @@ func initGRPCServer() {
 
 	var opts []grpc.ServerOption
 
-	if grpctsl {
+	if serviceConfig.GRPCTSL {
 		creds := credentials.NewTLS(tlsConfig)
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 		log.Logger.Info("configure grpc with tls")
@@ -374,7 +374,7 @@ func initLogging() {
 	}
 	log.Logger.GelfURL = serviceConfig.Logging.Gelfurl
 	log.Logger.GelfPort = serviceConfig.Logging.Gelfport
-	log.Logger.InitGelf()
+	log.Logger.Init()
 }
 
 func initConfig() {

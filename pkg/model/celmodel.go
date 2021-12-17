@@ -6,7 +6,7 @@ type CelModel struct {
 }
 
 type CelResult struct {
-	Error   error  `yaml:"error" json:"error"`
+	Error   string `yaml:"error" json:"error"`
 	Message string `yaml:"message" json:"message"`
 	Result  bool   `yaml:"result" json:"result"`
 }
