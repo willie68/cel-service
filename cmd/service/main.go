@@ -18,7 +18,7 @@ import (
 	"github.com/willie68/cel-service/internal/api"
 	"github.com/willie68/cel-service/internal/apiv1"
 	"github.com/willie68/cel-service/internal/auth"
-	"github.com/willie68/cel-service/internal/celproc"
+	"github.com/willie68/cel-service/internal/csrv"
 	"github.com/willie68/cel-service/internal/health"
 	"github.com/willie68/cel-service/internal/serror"
 	"github.com/willie68/cel-service/pkg/protofiles"
@@ -65,22 +65,6 @@ var (
 	tlsConfig     *tls.Config
 )
 
-type celServer struct {
-	protofiles.UnimplementedEvalServiceServer
-}
-
-func (c *celServer) Evaluate(ctx context.Context, req *protofiles.CelRequest) (*protofiles.CelResponse, error) {
-
-	res, err := celproc.GRPCProcCel(req)
-	log.Logger.Infof("req: %v, res: %v", req, res)
-
-	if err != nil {
-		log.Logger.Errorf("failed to listen: %v", err)
-		return nil, err
-	}
-	return res, nil
-}
-
 func init() {
 	// variables for parameter override
 	ssl = false
@@ -91,11 +75,6 @@ func init() {
 	flag.StringVarP(&serviceURL, "serviceURL", "u", "", "service url from outside")
 	flag.IntVarP(&grpcport, "grpcport", "g", 50051, "The grpc server port")
 	flag.BoolVar(&grpctsl, "grpctsl", true, "Enable the tsl for the grpc server")
-}
-
-func newCelServer() *celServer {
-	s := &celServer{}
-	return s
 }
 
 func apiRoutes() (*chi.Mux, error) {
@@ -381,7 +360,7 @@ func initGRPCServer() {
 	}
 
 	grpcServer = grpc.NewServer(opts...)
-	protofiles.RegisterEvalServiceServer(grpcServer, newCelServer())
+	protofiles.RegisterEvalServiceServer(grpcServer, csrv.NewCelServer())
 	log.Logger.Info("grpc server ready")
 	grpcServer.Serve(lis)
 }

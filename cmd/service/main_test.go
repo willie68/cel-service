@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/willie68/cel-service/internal/csrv"
 	log "github.com/willie68/cel-service/internal/logging"
 	"github.com/willie68/cel-service/pkg/model"
 	"github.com/willie68/cel-service/pkg/protofiles"
@@ -69,7 +70,7 @@ func initServer() {
 	var opts []grpc.ServerOption
 
 	grpcServer = grpc.NewServer(opts...)
-	protofiles.RegisterEvalServiceServer(grpcServer, newCelServer())
+	protofiles.RegisterEvalServiceServer(grpcServer, csrv.NewCelServer())
 	grpcServer.Serve(lis)
 }
 
