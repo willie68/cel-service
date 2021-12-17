@@ -60,14 +60,17 @@ func PostEvalEndpoint(response http.ResponseWriter, request *http.Request) {
 		httputils.Err(response, request, serror.BadRequest(nil, "server-error", msg))
 		return
 	}
-
+	if celModel.Expression == "" {
+		httputils.Err(response, request, serror.BadRequest(nil, "empty expression not allowed"))
+		return
+	}
 	res, err := celproc.ProcCel(celModel)
 	log.Logger.Infof("req: %v, res: %v", celModel, res)
 
 	if err != nil {
-		log.Logger.Errorf("failed to listen: %v", err)
-		msg := "failed to listen"
-		httputils.Err(response, request, serror.BadRequest(nil, "server-error", msg))
+		log.Logger.Errorf("processing error: %v", err)
+		render.Status(request, http.StatusBadRequest)
+		render.JSON(response, request, res)
 		return
 	}
 	render.Status(request, http.StatusCreated)

@@ -49,29 +49,46 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	}
 	ast, issues := env.Compile(celModel.Expression)
 	if issues != nil && issues.Err() != nil {
-		log.Logger.Errorf("type-check error: %s", issues.Err())
+		log.Logger.Errorf("type-check error: %v", issues.Err())
+		return model.CelResult{
+			Error:   issues.Err(),
+			Message: issues.Err().Error(),
+		}, issues.Err()
 	}
 	prg, err := env.Program(ast)
 	if err != nil {
-		log.Logger.Errorf("program construction error: %s", err)
+		log.Logger.Errorf("program construction error: %v", err)
+		return model.CelResult{
+			Error:   err,
+			Message: fmt.Sprintf("program construction error: %s", err.Error()),
+		}, err
 	}
 	out, details, err := prg.Eval(celModel.Context)
 	fmt.Printf("result: %v\r\n", details)
 	if err != nil {
-		log.Logger.Errorf("program evaluation error: %s", err)
+		log.Logger.Errorf("program evaluation error: %v", err)
+
+		return model.CelResult{
+			Error:   err,
+			Message: fmt.Sprintf("program evaluation error: %s", err.Error()),
+		}, err
 	}
 	switch v := out.(type) {
 	case types.Bool:
 		return model.CelResult{
-			Result: v == types.True,
+			Message: fmt.Sprintf("result ok: %v", v),
+			Result:  v == types.True,
 		}, nil
 	case *types.Err:
 		return model.CelResult{
-			Result: false,
+			Error:   err,
+			Message: fmt.Sprintf("unknown cel engine error: %v", err),
+			Result:  false,
 		}, err
 	default:
 		return model.CelResult{
-			Result: false,
+			Message: "unknown result type",
+			Result:  false,
 		}, errors.New("unknown result type")
 	}
 }
