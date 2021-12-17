@@ -16,13 +16,24 @@
                     "v1": {
                         "value": 1
                     },
-                    "float": 1.0
+                    "float": 1.0,
+                    "bool": true
                 },
                 "user": {
                     "name": "klaas"
                 }
             },
-            "expression": "int(data.v1.value) == 1 && data.float ==  1.0 && user.name == \"klaas\""
+            "expression": "int(data.v1.value) == 1 && data.float ==  1.0 && data.bool == true"
+        },
+        "result": true
+    }, {
+        "request": {
+            "context": {
+                "user": {
+                    "name": "klaas"
+                }
+            },
+            "expression": "has(user.name) && user.name == \"klaas\""
         },
         "result": true
     }

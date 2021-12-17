@@ -63,7 +63,8 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 		}, err
 	}
 	out, details, err := prg.Eval(celModel.Context)
-	fmt.Printf("result: %v\r\n", details)
+	fmt.Printf("result: %v\ndetails: %v\nerror: %v\n", out, details, err)
+
 	if err != nil {
 		log.Logger.Errorf("program evaluation error: %v", err)
 
