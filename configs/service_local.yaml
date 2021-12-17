@@ -1,5 +1,5 @@
 # port of the http server
-port: 9180 
+port: 9580 
 # port of the https server
 sslport: 9543
 # enable ssl for grpc
