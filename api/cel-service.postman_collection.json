@@ -17,15 +17,12 @@
 					}
 				],
 				"url": {
-					"raw": "https://127.0.0.1:9543/metrics",
+					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/metrics",
 					"protocol": "https",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{cel-host}}"
 					],
-					"port": "9543",
+					"port": "{{cel-port-ssl}}",
 					"path": [
 						"metrics"
 					]
@@ -46,15 +43,12 @@
 					}
 				],
 				"url": {
-					"raw": "https://127.0.0.1:9543/health/healthz",
+					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/health/healthz",
 					"protocol": "https",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{cel-host}}"
 					],
-					"port": "9543",
+					"port": "{{cel-port-ssl}}",
 					"path": [
 						"health",
 						"healthz"
@@ -76,15 +70,12 @@
 					}
 				],
 				"url": {
-					"raw": "https://127.0.0.1:9543/health/readyz",
+					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/health/readyz",
 					"protocol": "https",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{cel-host}}"
 					],
-					"port": "9543",
+					"port": "{{cel-port-ssl}}",
 					"path": [
 						"health",
 						"readyz"
@@ -106,15 +97,12 @@
 					}
 				],
 				"url": {
-					"raw": "http://127.0.0.1:9580/metrics",
+					"raw": "http://{{cel-host}}:{{cel-port}}/metrics",
 					"protocol": "http",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{cel-host}}"
 					],
-					"port": "9580",
+					"port": "{{cel-port}}",
 					"path": [
 						"metrics"
 					]
@@ -135,15 +123,12 @@
 					}
 				],
 				"url": {
-					"raw": "http://127.0.0.1:9580/healthz",
+					"raw": "http://{{cel-host}}:{{cel-port}}/healthz",
 					"protocol": "http",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{cel-host}}"
 					],
-					"port": "9580",
+					"port": "{{cel-port}}",
 					"path": [
 						"healthz"
 					]
@@ -164,15 +149,12 @@
 					}
 				],
 				"url": {
-					"raw": "http://127.0.0.1:9580/readyz",
+					"raw": "http://{{cel-host}}:{{cel-port}}/readyz",
 					"protocol": "http",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{cel-host}}"
 					],
-					"port": "9580",
+					"port": "{{cel-port}}",
 					"path": [
 						"readyz"
 					]
@@ -193,7 +175,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"context\": {\r\n        \"data\": {\r\n            \"index\": 2\r\n        }\r\n    },\r\n    \"expression\": \"int(data.index) == 1\"\r\n}",
+					"raw": "{\r\n    \"context\": {\r\n        \"data\": {\r\n            \"index\": 1,\r\n            \"name\": \"klaas\"\r\n        }\r\n    },\r\n\"expression\": \"int(data.index) == 1 && data.name == \\\"klaas\\\"\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -201,15 +183,12 @@
 					}
 				},
 				"url": {
-					"raw": "https://127.0.0.1:9543/api/v1/evaluate",
+					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/api/v1/evaluate",
 					"protocol": "https",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{cel-host}}"
 					],
-					"port": "9543",
+					"port": "{{cel-port-ssl}}",
 					"path": [
 						"api",
 						"v1",
@@ -218,6 +197,40 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "cel-host",
+			"value": "127.0.0.1"
+		},
+		{
+			"key": "cel-port-ssl",
+			"value": "9543"
+		},
+		{
+			"key": "cel-port",
+			"value": "9580"
 		}
 	]
 }
