@@ -21,6 +21,7 @@ import (
 	"github.com/willie68/cel-service/internal/csrv"
 	"github.com/willie68/cel-service/internal/health"
 	"github.com/willie68/cel-service/internal/serror"
+	"github.com/willie68/cel-service/internal/utils/httputils"
 	"github.com/willie68/cel-service/pkg/protofiles"
 	"github.com/willie68/cel-service/pkg/web"
 	"google.golang.org/grpc"
@@ -158,7 +159,7 @@ func apiRoutes() (*chi.Mux, error) {
 			r.Mount("/metrics", promhttp.Handler())
 		}
 	})
-	FileServer(router, "/client", http.FS(web.WebClientAssets))
+	httputils.FileServer(router, "/client", http.FS(web.WebClientAssets))
 	return router, nil
 }
 
@@ -191,27 +192,6 @@ func healthRoutes() *chi.Mux {
 			}
 		})
 	return router
-}
-
-// FileServer conveniently sets up a http.FileServer handler to serve
-// static files from a http.FileSystem.
-func FileServer(r chi.Router, path string, root http.FileSystem) {
-	if strings.ContainsAny(path, "{}*") {
-		panic("FileServer does not permit any URL parameters.")
-	}
-
-	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
-		path += "/"
-	}
-	path += "*"
-
-	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
-		//rctx := chi.RouteContext(r.Context())
-		//pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.FileServer(root)
-		fs.ServeHTTP(w, r)
-	})
 }
 
 func main() {
