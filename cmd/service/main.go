@@ -229,6 +229,9 @@ func main() {
 	serviceConfig = config.Get()
 	initConfig()
 	initLogging()
+
+	log.Logger.Info("service is starting")
+
 	var closer io.Closer
 	Tracer, closer = initJaeger(servicename, serviceConfig.OpenTracing)
 	opentracing.SetGlobalTracer(Tracer)
