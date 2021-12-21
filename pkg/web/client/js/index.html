@@ -1,5 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml"> 
 <head> 
+<meta charset="utf-8"/>
 <script
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"
 			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -20,6 +21,7 @@ var demoContext = {
             }
  $(document).ready(function () {
         afterLoad();
+        doRequest();
     });
 function afterLoad() {
     console.log("after laod");
@@ -27,7 +29,11 @@ function afterLoad() {
 	$('#expression').val('int(data.v1.value) == 1 && data.float ==  1.0 && data.bool == true');
 	$('#result').val();
 }
-function doSomething() {
+function onformsubmit (event) {
+    event.preventDefault();
+    doRequest()
+}
+function doRequest() {
   $('#result').val();
   var request = new Object();
   request.context = JSON.parse($('#context').val());
@@ -38,12 +44,16 @@ function doSomething() {
   xhr.open('POST', '/api/v1/evaluate', true);
   xhr.setRequestHeader('Content-type', 'application/json');
   xhr.setRequestHeader('apikey', '8723a34c54a53c70071cf86dfb1d8744');
+  var start = Date.now()
   xhr.onload = function () {
     // do something to response
+    var end = Date.now()
+    document.getElementById("actual").innerHTML = String( end - start) + " ms"
 	var result = JSON.parse(this.responseText);
     console.log(this.responseText);
     $('#result').val(JSON.stringify(result,undefined, 2));
   };
+  start = Date.now()
   xhr.send(JSON.stringify(request));
   
   return false;
@@ -51,19 +61,19 @@ function doSomething() {
 </script> 
 </head> 
 <body> 
-<h1>cel service simple html frontend</h1>
-for cel service see <a href="https://github.com/willie68/cel-service" target="_blank">cel-service on github</a>
-<form onsubmit="return doSomething();">
+<h1>CEL service, very simple html/js frontend</h1>
+<a href="https://opensource.google/projects/cel">CEL, Google's Common Expression Language</a><br/>
+powered by cel-service, <a href="https://github.com/willie68/cel-service" target="_blank">cel-service on github</a>
+<form onsubmit="return doRequest();">
 <input type="hidden" name="action" value="doupload"/>
 <table>
 <tr><td><label for="Context">Context:</label></td><td><textarea id="context" name="context" rows="10" cols="50"></textarea>
 </td></tr>
 <tr><td><label for="link">Evaluation:</label></td><td><textarea id="expression" type="text" name="expression"  rows="5" cols="50"></textarea></td></tr>
-<tr><td><input type="submit" value="Evaluate"/></td></tr>
+<tr><td></td><td><input type="submit" value="Evaluate"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execution time <b id="actual"></b> <br/>(this is only a estimation, see network for the real time)</td></tr>
 <tr><td><label for="Result">Result:</label></td><td><textarea id="result" name="result"rows="10" cols="50"></textarea>
 </td></tr>
 </table>
 </form>
-
 </body> 
 </html> 
