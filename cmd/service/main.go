@@ -48,7 +48,6 @@ import (
 apVersion implementing api version for this service
 */
 const apiVersion = "1"
-const servicename = "cel-service"
 
 var (
 	grpctsl       bool
@@ -98,7 +97,7 @@ func apiRoutes() (*chi.Mux, error) {
 			MaxAge:           300, // Maximum value not ignored by any of major browsers
 		}),
 		httptracer.Tracer(Tracer, httptracer.Config{
-			ServiceName:    servicename,
+			ServiceName:    config.Servicename,
 			ServiceVersion: apiVersion,
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
@@ -130,6 +129,13 @@ func apiRoutes() (*chi.Mux, error) {
 					if strings.HasPrefix(path, "/client") {
 						return true
 					}
+					return false
+				},
+			}),
+		)
+		router.Use(
+			api.MetricsHandler(api.MetricsConfig{
+				SkipFunc: func(r *http.Request) bool {
 					return false
 				},
 			}),
@@ -171,7 +177,7 @@ func healthRoutes() *chi.Mux {
 		//middleware.DefaultCompress,
 		middleware.Recoverer,
 		httptracer.Tracer(Tracer, httptracer.Config{
-			ServiceName:    servicename,
+			ServiceName:    config.Servicename,
 			ServiceVersion: apiVersion,
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
@@ -204,7 +210,7 @@ func main() {
 
 	log.Logger.Infof("starting server, config folder: %s", configFolder)
 	defer log.Logger.Close()
-	serror.Service = servicename
+	serror.Service = config.Servicename
 	if configFile == "" {
 		configFolder, err := config.GetDefaultConfigFolder()
 		if err != nil {
@@ -233,7 +239,7 @@ func main() {
 	log.Logger.Info("service is starting")
 
 	var closer io.Closer
-	Tracer, closer = initJaeger(servicename, serviceConfig.OpenTracing)
+	Tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
 	opentracing.SetGlobalTracer(Tracer)
 	defer closer.Close()
 
@@ -254,7 +260,7 @@ func main() {
 
 	log.Logger.Infof("ssl: %t", ssl)
 	log.Logger.Infof("serviceURL: %s", serviceConfig.ServiceURL)
-	log.Logger.Infof("%s api routes", servicename)
+	log.Logger.Infof("%s api routes", config.Servicename)
 	router, err := apiRoutes()
 	if err != nil {
 		log.Logger.Alertf("could not create api routes. %s", err.Error())
@@ -435,7 +441,7 @@ func initJaeger(servicename string, config config.OpenTracing) (opentracing.Trac
 }
 
 func getApikey() string {
-	value := fmt.Sprintf("%s_%s", servicename, "default")
+	value := fmt.Sprintf("%s_%s", config.Servicename, "default")
 	apikey := fmt.Sprintf("%x", md5.Sum([]byte(value)))
 	return strings.ToLower(apikey)
 }
