@@ -1,12 +1,17 @@
 package apiv1
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/go-playground/validator/v10"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/willie68/cel-service/pkg/model"
@@ -53,7 +58,7 @@ func PostEvalEndpoint(response http.ResponseWriter, request *http.Request) {
 	//	}
 	postEvalCounter.Inc()
 	var celModel model.CelModel
-	err := httputils.Decode(request, &celModel)
+	err := decode(request, &celModel)
 	if err != nil {
 		log.Logger.Errorf("error decoding context: %v", err)
 		msg := fmt.Sprintf("error decoding context: %v", err)
@@ -82,4 +87,42 @@ getTenant getting the tenant from the request
 */
 func getTenant(req *http.Request) string {
 	return req.Header.Get(api.TenantHeaderKey)
+}
+
+// Validate validator
+var Validate *validator.Validate = validator.New()
+
+// Decode decodes and validates an object
+func decode(r *http.Request, v interface{}) error {
+	err := defaultDecoder(r, v)
+	if err != nil {
+		serror.BadRequest(err, "decode-body", "could not decode body")
+	}
+	if err := Validate.Struct(v); err != nil {
+		serror.BadRequest(err, "validate-body", "body invalid")
+	}
+	return nil
+}
+
+func defaultDecoder(r *http.Request, v interface{}) error {
+	var err error
+
+	switch render.GetRequestContentType(r) {
+	case render.ContentTypeJSON:
+		err = decodeJSON(r.Body, v)
+	case render.ContentTypeXML:
+		err = render.DecodeXML(r.Body, v)
+	// case ContentTypeForm: // TODO
+	default:
+		err = errors.New("render: unable to automatically decode the request content type")
+	}
+
+	return err
+}
+
+func decodeJSON(r io.Reader, v interface{}) error {
+	defer io.Copy(ioutil.Discard, r)
+	d := json.NewDecoder(r)
+	d.UseNumber()
+	return d.Decode(v)
 }

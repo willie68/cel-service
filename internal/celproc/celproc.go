@@ -60,9 +60,10 @@ func convertJson2Map(src map[string]interface{}) (dst map[string]interface{}) {
 }
 
 func ProcCel(celModel model.CelModel) (model.CelResult, error) {
-	var declList = make([]*exprpb.Decl, len(celModel.Context))
+	context := convertJson2Map(celModel.Context)
+	var declList = make([]*exprpb.Decl, len(context))
 	x := 0
-	for k := range celModel.Context {
+	for k := range context {
 		declList[x] = decls.NewVar(k, decls.Dyn)
 		x++
 	}
@@ -90,7 +91,7 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 			Message: fmt.Sprintf("program construction error: %s", err.Error()),
 		}, err
 	}
-	out, details, err := prg.Eval(celModel.Context)
+	out, details, err := prg.Eval(context)
 	fmt.Printf("result: %v\ndetails: %v\nerror: %v\n", out, details, err)
 
 	if err != nil {
