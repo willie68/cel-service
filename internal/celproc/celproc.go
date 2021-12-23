@@ -1,6 +1,7 @@
 package celproc
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -15,8 +16,7 @@ import (
 )
 
 func GRPCProcCel(celRequest *protofiles.CelRequest) (*protofiles.CelResponse, error) {
-	context := celRequest.Context.AsMap()
-
+	context := convertJson2Map(celRequest.Context.AsMap())
 	celModel := model.CelModel{
 		Context:    context,
 		Expression: celRequest.Expression,
@@ -29,6 +29,34 @@ func GRPCProcCel(celRequest *protofiles.CelRequest) (*protofiles.CelResponse, er
 		Result:  rep.Result,
 	}
 	return &celResponse, err
+}
+
+func convertJson2Map(src map[string]interface{}) (dst map[string]interface{}) {
+	if src == nil {
+		return nil
+	}
+	dst = make(map[string]interface{})
+	for key, value := range src {
+		switch v := value.(type) {
+		case json.Number:
+			iv, err := v.Int64()
+			if err == nil {
+				dst[key] = iv
+			} else {
+				fv, err := v.Float64()
+				if err == nil {
+					dst[key] = fv
+				} else {
+					dst[key] = v.String()
+				}
+			}
+		case map[string]interface{}:
+			dst[key] = convertJson2Map(v)
+		default:
+			dst[key] = value
+		}
+	}
+	return
 }
 
 func ProcCel(celModel model.CelModel) (model.CelResult, error) {

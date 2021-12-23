@@ -1,6 +1,7 @@
 package celproc
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"testing"
@@ -34,7 +35,7 @@ func TestJson(t *testing.T) {
 	celModels := readJson("../../test/data/data1.json", t)
 
 	for _, cm := range celModels {
-
+		cm.Request.Context = convertJson2Map(cm.Request.Context)
 		result, err := ProcCel(cm.Request)
 		ast.Nil(err)
 		ast.NotNil(result)
@@ -49,8 +50,8 @@ func TestGRPCJson(t *testing.T) {
 	celModels := readJson("../../test/data/data1.json", t)
 
 	for _, cm := range celModels {
-
-		grpcContext, err := structpb.NewStruct(cm.Request.Context)
+		context := convertJson2Map(cm.Request.Context)
+		grpcContext, err := structpb.NewStruct(context)
 		ast.Nil(err)
 		celRequest := protofiles.CelRequest{
 			Context:    grpcContext,
@@ -80,7 +81,10 @@ func readJson(filename string, t *testing.T) []model.TestCelModel {
 	ya, err := ioutil.ReadFile(filename)
 	ast.Nil(err)
 	var celModels []model.TestCelModel
-	err = json.Unmarshal(ya, &celModels)
+	decoder := json.NewDecoder(bytes.NewReader(ya))
+	decoder.UseNumber()
+	err = decoder.Decode(&celModels)
+	//err = json.Unmarshal(ya, &celModels)
 	ast.Nil(err)
 	return celModels
 }
