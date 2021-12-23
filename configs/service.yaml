@@ -22,4 +22,4 @@ healthcheck:
 
 # enable/disable metrics 
 metrics:
-  enable: false
+  enable: true
