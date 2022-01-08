@@ -15,10 +15,13 @@ import (
 	exprpb "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 )
 
-var cache map[string]cel.Program
+var lrucache LRUList
 
 func init() {
-	cache = make(map[string]cel.Program)
+	lrucache = LRUList{
+		MaxCount: int(10000),
+	}
+	lrucache.Init()
 }
 
 func GRPCProcCel(celRequest *protofiles.CelRequest) (*protofiles.CelResponse, error) {
@@ -69,11 +72,14 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	context := convertJson2Map(celModel.Context)
 	ok := false
 	var prg cel.Program
-	if celModel.Identifier != "" {
-		prg, ok = cache[celModel.Identifier]
+	id := celModel.Identifier
+	if id != "" {
+		entry, ok := lrucache.Get(id)
+		if ok {
+			prg = entry.Program
+		}
 	}
 	if !ok {
-
 		var declList = make([]*exprpb.Decl, len(context))
 		x := 0
 		for k := range context {
@@ -104,8 +110,20 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 				Message: fmt.Sprintf("program construction error: %s", err.Error()),
 			}, err
 		}
-		if celModel.Identifier != "" {
-			cache[celModel.Identifier] = prg
+		if id != "" {
+			lrucache.Add(LRUEntry{
+				ID:      id,
+				Program: prg,
+			})
+			for {
+				id := lrucache.HandleContrains()
+				if id != "" {
+					lrucache.Delete(id)
+				} else {
+					break
+				}
+			}
+
 		}
 	}
 	out, details, err := prg.Eval(context)

@@ -48,14 +48,15 @@ func TestJsonMany(t *testing.T) {
 	ast := assert.New(t)
 
 	celModels := readJson("../../test/data/data1.json", t)
+	for i := 0; i < 1000; i++ {
+		for _, cm := range celModels {
+			cm.Request.Context = convertJson2Map(cm.Request.Context)
+			result, err := ProcCel(cm.Request)
+			ast.Nil(err)
+			ast.NotNil(result)
 
-	for _, cm := range celModels {
-		cm.Request.Context = convertJson2Map(cm.Request.Context)
-		result, err := ProcCel(cm.Request)
-		ast.Nil(err)
-		ast.NotNil(result)
-
-		ast.Equal(cm.Result, result.Result)
+			ast.Equal(cm.Result, result.Result)
+		}
 	}
 }
 
