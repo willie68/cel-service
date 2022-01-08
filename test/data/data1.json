@@ -5,7 +5,8 @@
                     "value": 1
                 }
             },
-            "expression": "data.value == 1"
+            "expression": "data.value == 1",
+            "identifier": "1"
         },
         "result": true
     }, {
@@ -23,7 +24,8 @@
                     "name": "klaas"
                 }
             },
-            "expression": "data.v1.value == 1 && data.float ==  1.0 && data.bool == true"
+            "expression": "data.v1.value == 1 && data.float ==  1.0 && data.bool == true",
+            "identifier": "2"
         },
         "result": true
     }, {
@@ -33,7 +35,8 @@
                     "name": "klaas"
                 }
             },
-            "expression": "has(user.name) && user.name == \"klaas\""
+            "expression": "has(user.name) && user.name == \"klaas\"",
+            "identifier": "3"
         },
         "result": true
     }

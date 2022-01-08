@@ -1,7 +1,6 @@
 syntax = "proto3";
 package protofiles;
 
-import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 
 option go_package = "./pkg/protofiles";
@@ -9,21 +8,7 @@ option go_package = "./pkg/protofiles";
 message CelRequest {
     google.protobuf.Struct Context = 1;
     string Expression = 2;
-}
-
-message ContextValue {
-    enum Type {
-        int23 = 0;
-        int64 = 1;
-        double = 2;
-        float = 3;
-        bool = 4;
-        string = 5;
-        bytes = 6;
-        map = 7;
-    }
-    Type type = 1;
-    google.protobuf.Any value = 2;
+    string identifier = 3;
 }
 
 message CelResponse {
