@@ -10,6 +10,7 @@ grpcport: 50051
 serviceURL: http://127.0.0.1:8080
 #sercret file for storing usernames and passwords
 secretfile: /config/secret.yaml
+apikey: false
 
 logging:
   level: debug

@@ -43,15 +43,14 @@
 					}
 				],
 				"url": {
-					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/health/healthz",
+					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/livez",
 					"protocol": "https",
 					"host": [
 						"{{cel-host}}"
 					],
 					"port": "{{cel-port-ssl}}",
 					"path": [
-						"health",
-						"healthz"
+						"livez"
 					]
 				}
 			},
@@ -70,14 +69,13 @@
 					}
 				],
 				"url": {
-					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/health/readyz",
+					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/readyz",
 					"protocol": "https",
 					"host": [
 						"{{cel-host}}"
 					],
 					"port": "{{cel-port-ssl}}",
 					"path": [
-						"health",
 						"readyz"
 					]
 				}
@@ -123,14 +121,14 @@
 					}
 				],
 				"url": {
-					"raw": "http://{{cel-host}}:{{cel-port}}/healthz",
+					"raw": "http://{{cel-host}}:{{cel-port}}/livez",
 					"protocol": "http",
 					"host": [
 						"{{cel-host}}"
 					],
 					"port": "{{cel-port}}",
 					"path": [
-						"healthz"
+						"livez"
 					]
 				}
 			},
@@ -175,7 +173,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"context\": {\r\n        \"data\": {\r\n            \"index\": 1,\r\n            \"name\": \"klaas\"\r\n        }\r\n    },\r\n\"expression\": \"int(data.index) == 1 && data.name == \\\"klaas\\\"\"\r\n}",
+					"raw": "{\r\n    \"context\": {\r\n        \"data\": {\r\n            \"index\": 1,\r\n            \"float\": 1.1,\r\n            \"name\": \"klaas\"\r\n        }\r\n    },\r\n    \"expression\": \"data.index == 1 && data.float == 1.1 && data.name == \\\"klaas\\\"\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -194,6 +192,32 @@
 						"v1",
 						"evaluate"
 					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ssl public wkla",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"context\": {\r\n        \"data\": {\r\n            \"index\": 1,\r\n            \"name\": \"klaas\"\r\n        }\r\n    },\r\n\"expression\": \"int(data.index) == 1 && data.name == \\\"klaas\\\"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": ""
 				}
 			},
 			"response": []

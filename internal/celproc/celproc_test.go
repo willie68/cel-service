@@ -15,6 +15,8 @@ import (
 	"github.com/willie68/cel-service/pkg/protofiles"
 )
 
+const MAX_TEST_COUNT = 10000
+
 func TestYaml(t *testing.T) {
 	ast := assert.New(t)
 
@@ -50,7 +52,7 @@ func BenchmarkJsonManyWithoutCache(t *testing.B) {
 
 	celModels := readJsonB("../../test/data/data1.json", t)
 	stt := time.Now()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < MAX_TEST_COUNT; i++ {
 		for _, cm := range celModels {
 			cm.Request.Context = convertJson2Map(cm.Request.Context)
 			cm.Request.Identifier = "" //fmt.Sprintf("%d_%d", i, x)
@@ -71,7 +73,7 @@ func BenchmarkJsonManyWithCache(t *testing.B) {
 
 	celModels := readJsonB("../../test/data/data1.json", t)
 	stt := time.Now()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < MAX_TEST_COUNT; i++ {
 		for _, cm := range celModels {
 			cm.Request.Context = convertJson2Map(cm.Request.Context)
 			result, err := ProcCel(cm.Request)

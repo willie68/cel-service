@@ -102,7 +102,7 @@ func apiRoutes() (*chi.Mux, error) {
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
 				return false
-				//return r.URL.Path == "/healthz"
+				//return r.URL.Path == "/livez"
 			},
 			Tags: map[string]interface{}{
 				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
@@ -117,7 +117,7 @@ func apiRoutes() (*chi.Mux, error) {
 				Apikey: apikey,
 				SkipFunc: func(r *http.Request) bool {
 					path := strings.TrimSuffix(r.URL.Path, "/")
-					if strings.HasSuffix(path, "/healthz") {
+					if strings.HasSuffix(path, "/livez") {
 						return true
 					}
 					if strings.HasSuffix(path, "/readyz") {
@@ -160,7 +160,7 @@ func apiRoutes() (*chi.Mux, error) {
 	// building the routes
 	router.Route("/", func(r chi.Router) {
 		r.Mount(baseURL+"/evaluate", apiv1.EvalRoutes())
-		r.Mount("/health", health.Routes())
+		r.Mount("/", health.Routes())
 		if serviceConfig.Metrics.Enable {
 			r.Mount("/metrics", promhttp.Handler())
 		}
@@ -253,7 +253,6 @@ func main() {
 	}
 
 	apikey = getApikey()
-	apiv1.APIKey = apikey
 	if config.Get().Apikey {
 		log.Logger.Infof("apikey: %s", apikey)
 	}

@@ -20,12 +20,6 @@ func check(tracer opentracing.Tracer) (bool, string) {
 	// TODO implement here your healthcheck.
 	myhealthy = true
 	message := ""
-	if myhealthy {
-		log.Logger.Info("healthy")
-	} else {
-		log.Logger.Info("not healthy")
-		message = "ungesund"
-	}
 	return myhealthy, message
 }
 
@@ -80,7 +74,7 @@ Routes getting all routes for the health endpoint
 */
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
-	router.Get("/healthz", GetHealthyEndpoint)
+	router.Get("/livez", GetHealthyEndpoint)
 	router.Get("/readyz", GetReadinessEndpoint)
 	return router
 }

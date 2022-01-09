@@ -15,7 +15,7 @@ tags:
   - name: health
     description: readiness/healthcheck endpoints
 paths:
-  /healthz:
+  /livez:
     servers:
       - url: 'https://cel-service/'
       - url: 'http://cel-service/'

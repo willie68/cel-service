@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -16,18 +15,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/willie68/cel-service/pkg/model"
 
-	"github.com/willie68/cel-service/internal/api"
 	"github.com/willie68/cel-service/internal/celproc"
 	log "github.com/willie68/cel-service/internal/logging"
 	"github.com/willie68/cel-service/internal/serror"
 	"github.com/willie68/cel-service/internal/utils/httputils"
 )
-
-// TenantHeader in this header thr right tenant should be inserted
-const timeout = 1 * time.Minute
-
-//APIKey the apikey of this service
-var APIKey string
 
 var (
 	postEvalCounter = promauto.NewCounter(prometheus.CounterOpts{
@@ -50,12 +42,6 @@ PostEvalEndpoint create a new store for a tenant
 because of the automatic store creation, this method will always return 201
 */
 func PostEvalEndpoint(response http.ResponseWriter, request *http.Request) {
-	//	tenant := getTenant(request)
-	//	if tenant == "" {
-	//		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
-	//		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
-	//		return
-	//	}
 	postEvalCounter.Inc()
 	var celModel model.CelModel
 	err := decode(request, &celModel)
@@ -80,13 +66,6 @@ func PostEvalEndpoint(response http.ResponseWriter, request *http.Request) {
 	}
 	render.Status(request, http.StatusCreated)
 	render.JSON(response, request, res)
-}
-
-/*
-getTenant getting the tenant from the request
-*/
-func getTenant(req *http.Request) string {
-	return req.Header.Get(api.TenantHeaderKey)
 }
 
 // Validate validator
