@@ -3,6 +3,7 @@
       data: 
         value: 1
     expression: "data.value == 1"
+    identifier: "1"
   result: true  
 - request:
     context:
@@ -14,4 +15,5 @@
         user:
           name: klaas
     expression: "data.v1.value == 1 && data.float ==  1.0 && user.name == \"klaas\""
+    identifier: "2"
   result: true  

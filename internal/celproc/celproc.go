@@ -15,6 +15,15 @@ import (
 	exprpb "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 )
 
+var lrucache LRUList
+
+func init() {
+	lrucache = LRUList{
+		MaxCount: int(10000),
+	}
+	lrucache.Init()
+}
+
 func GRPCProcCel(celRequest *protofiles.CelRequest) (*protofiles.CelResponse, error) {
 	context := convertJson2Map(celRequest.Context.AsMap())
 	celModel := model.CelModel{
@@ -61,45 +70,64 @@ func convertJson2Map(src map[string]interface{}) (dst map[string]interface{}) {
 
 func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	context := convertJson2Map(celModel.Context)
-	var declList = make([]*exprpb.Decl, len(context))
-	x := 0
-	for k := range context {
-		declList[x] = decls.NewVar(k, decls.Dyn)
-		x++
+	ok := false
+	var prg cel.Program
+	id := celModel.Identifier
+	if id != "" {
+		var entry LRUEntry
+		entry, ok = lrucache.Get(id)
+		if ok {
+			prg = entry.Program
+		}
 	}
-	env, err := cel.NewEnv(
-		cel.Declarations(
-			declList...,
-		),
-	)
-	if err != nil {
-		log.Logger.Errorf("env declaration error: %s", err)
-	}
-	ast, issues := env.Compile(celModel.Expression)
-	if issues != nil && issues.Err() != nil {
-		log.Logger.Errorf("type-check error: %v", issues.Err())
-		return model.CelResult{
-			Error:   fmt.Sprintf("%v", issues.Err()),
-			Message: issues.Err().Error(),
-		}, issues.Err()
-	}
-	prg, err := env.Program(ast)
-	if err != nil {
-		log.Logger.Errorf("program construction error: %v", err)
-		return model.CelResult{
-			Error:   fmt.Sprintf("%v", err),
-			Message: fmt.Sprintf("program construction error: %s", err.Error()),
-		}, err
+	if !ok {
+		var declList = make([]*exprpb.Decl, len(context))
+		x := 0
+		for k := range context {
+			declList[x] = decls.NewVar(k, decls.Dyn)
+			x++
+		}
+		env, err := cel.NewEnv(
+			cel.Declarations(
+				declList...,
+			),
+		)
+		if err != nil {
+			log.Logger.Errorf("env declaration error: %s", err)
+		}
+		ast, issues := env.Compile(celModel.Expression)
+		if issues != nil && issues.Err() != nil {
+			log.Logger.Errorf("type-check error: %v", issues.Err())
+			return model.CelResult{
+				Error:   fmt.Sprintf("%v", issues.Err()),
+				Message: issues.Err().Error(),
+			}, issues.Err()
+		}
+		prg, err = env.Program(ast)
+		if err != nil {
+			log.Logger.Errorf("program construction error: %v", err)
+			return model.CelResult{
+				Error:   fmt.Sprintf("%v", err),
+				Message: fmt.Sprintf("program construction error: %s", err.Error()),
+			}, err
+		}
+		if id != "" {
+			lrucache.Add(LRUEntry{
+				ID:      id,
+				Program: prg,
+			})
+			go lrucache.HandleContrains()
+		}
 	}
 	out, details, err := prg.Eval(context)
-	fmt.Printf("result: %v\ndetails: %v\nerror: %v\n", out, details, err)
+	//fmt.Printf("result: %v\ndetails: %v\nerror: %v\n", out, details, err)
 
 	if err != nil {
 		log.Logger.Errorf("program evaluation error: %v", err)
 
 		return model.CelResult{
 			Error:   fmt.Sprintf("%v", err),
-			Message: fmt.Sprintf("program evaluation error: %s", err.Error()),
+			Message: fmt.Sprintf("program evaluation error: %s\r\ndetails: %s", err.Error(), details),
 		}, err
 	}
 	switch v := out.(type) {

@@ -3,6 +3,7 @@ package model
 type CelModel struct {
 	Context    map[string]interface{} `yaml:"context" json:"context"`
 	Expression string                 `yaml:"expression" json:"expression"`
+	Identifier string                 `yaml:"identifier" json:"identifier"`
 }
 
 type CelResult struct {

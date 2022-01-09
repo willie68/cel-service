@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v3"
@@ -44,6 +45,47 @@ func TestJson(t *testing.T) {
 	}
 }
 
+func BenchmarkJsonManyWithoutCache(t *testing.B) {
+	ast := assert.New(t)
+
+	celModels := readJsonB("../../test/data/data1.json", t)
+	stt := time.Now()
+	for i := 0; i < 10000; i++ {
+		for _, cm := range celModels {
+			cm.Request.Context = convertJson2Map(cm.Request.Context)
+			cm.Request.Identifier = "" //fmt.Sprintf("%d_%d", i, x)
+			result, err := ProcCel(cm.Request)
+			ast.Nil(err)
+			ast.NotNil(result)
+
+			ast.Equal(cm.Result, result.Result)
+		}
+	}
+	ste := time.Now()
+
+	t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
+}
+
+func BenchmarkJsonManyWithCache(t *testing.B) {
+	ast := assert.New(t)
+
+	celModels := readJsonB("../../test/data/data1.json", t)
+	stt := time.Now()
+	for i := 0; i < 10000; i++ {
+		for _, cm := range celModels {
+			cm.Request.Context = convertJson2Map(cm.Request.Context)
+			result, err := ProcCel(cm.Request)
+			ast.Nil(err)
+			ast.NotNil(result)
+
+			ast.Equal(cm.Result, result.Result)
+		}
+	}
+	ste := time.Now()
+
+	t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
+}
+
 func TestGRPCJson(t *testing.T) {
 	ast := assert.New(t)
 
@@ -77,6 +119,19 @@ func readYaml(filename string, t *testing.T) []model.TestCelModel {
 }
 
 func readJson(filename string, t *testing.T) []model.TestCelModel {
+	ast := assert.New(t)
+	ya, err := ioutil.ReadFile(filename)
+	ast.Nil(err)
+	var celModels []model.TestCelModel
+	decoder := json.NewDecoder(bytes.NewReader(ya))
+	decoder.UseNumber()
+	err = decoder.Decode(&celModels)
+	//err = json.Unmarshal(ya, &celModels)
+	ast.Nil(err)
+	return celModels
+}
+
+func readJsonB(filename string, t *testing.B) []model.TestCelModel {
 	ast := assert.New(t)
 	ya, err := ioutil.ReadFile(filename)
 	ast.Nil(err)
