@@ -1,5 +1,5 @@
 # cel-service
-REST and gRPC service for evaluating an expression using google cel (https://opensource.google/projects/cel)
+HTTP JSON and gRPC service for evaluating an expression using google cel (https://opensource.google/projects/cel)
 
 This service is a small, fast go microservice based on go-micro (https://github.com/willie68/go-micro) a template for a simple go microservice.
 
