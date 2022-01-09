@@ -35,7 +35,7 @@ A simple curl example for the service:
 curl --location --request POST 'https://127.0.0.1:9543/api/v1/evaluate' \
 --header 'apikey: 8723a34c54a53c70071cf86dfb1d8744' \
 --header 'Content-Type: application/json' \
---data-raw '{"context": {"data": {"index": 1}},"expression": "int(data.index) == 1"}'
+--data-raw '{"context": {"data": {"index": 1}},"expression": "data.index == 1"}'
 ```
 
 The result should be something like this:
@@ -61,7 +61,7 @@ for an eval of:
           "index": 1
       }
   },
-  "expression": "data.index == 1"
+  "expression": "data.index == 1.0"
 } 
 ```
 
@@ -75,10 +75,16 @@ for an eval of:
 }
 ```
 
-because you can't compare an float (which is `data.index` because in json every number is a float) with an int literal. (1 in cel is an int literal)
+because you can't compare an float (in the expression) with an int literal. (1 in cel is an int literal)
 
 see the cel project for further information. (https://opensource.google/projects/cel)
 
 ## Example gPRC
 
 The service also expose a grpc server (with the default port 50051 with TSL). The definition of the service and the models you can find in the api folder (cel-service.proto)
+
+Be aware, because of https://github.com/google/cel-go/issues/203 in gRPC numeric parameters in the context are always interpreted as float. In the example above  the expression should that be 
+
+int(data.index) == 1
+
+The problem here is that you can't use the same expression for both HTTP JSON and gRPC. 
