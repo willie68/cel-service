@@ -18,6 +18,7 @@ type LRUList struct {
 	MaxCount int
 	entries  []LRUEntry
 	dmu      sync.Mutex
+	cstLock  sync.Mutex
 }
 
 func (l *LRUList) Init() {
@@ -66,7 +67,20 @@ func (l *LRUList) GetFullIDList() []string {
 	return ids
 }
 
-func (l *LRUList) HandleContrains() string {
+func (l *LRUList) HandleContrains() {
+	l.cstLock.Lock()
+	defer l.cstLock.Unlock()
+	for {
+		id := l.getSingleContrained()
+		if id != "" {
+			l.Delete(id)
+		} else {
+			break
+		}
+	}
+}
+
+func (l *LRUList) getSingleContrained() string {
 	var id string
 	l.dmu.Lock()
 	defer l.dmu.Unlock()

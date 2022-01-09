@@ -74,7 +74,8 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	var prg cel.Program
 	id := celModel.Identifier
 	if id != "" {
-		entry, ok := lrucache.Get(id)
+		var entry LRUEntry
+		entry, ok = lrucache.Get(id)
 		if ok {
 			prg = entry.Program
 		}
@@ -115,26 +116,18 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 				ID:      id,
 				Program: prg,
 			})
-			for {
-				id := lrucache.HandleContrains()
-				if id != "" {
-					lrucache.Delete(id)
-				} else {
-					break
-				}
-			}
-
+			go lrucache.HandleContrains()
 		}
 	}
 	out, details, err := prg.Eval(context)
-	fmt.Printf("result: %v\ndetails: %v\nerror: %v\n", out, details, err)
+	//fmt.Printf("result: %v\ndetails: %v\nerror: %v\n", out, details, err)
 
 	if err != nil {
 		log.Logger.Errorf("program evaluation error: %v", err)
 
 		return model.CelResult{
 			Error:   fmt.Sprintf("%v", err),
-			Message: fmt.Sprintf("program evaluation error: %s", err.Error()),
+			Message: fmt.Sprintf("program evaluation error: %s\r\ndetails: %s", err.Error(), details),
 		}, err
 	}
 	switch v := out.(type) {
