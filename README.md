@@ -79,6 +79,24 @@ because you can't compare an float (in the expression) with an int literal. (1 i
 
 see the cel project for further information. (https://opensource.google/projects/cel)
 
+## Expression Cache
+
+The service has implemented an expression cache. Most time consuming operations are the parameter analyzing and the expression program compiling. The result of this two steps can be cached, so that you can reuse the same expression program with different contexts. The context definition should be equal, the values of course can be changed. To cache an expression simply add an identifier to the request:
+
+```json
+{
+  "context": {
+      "data": {
+          "index": 1
+      }
+  },
+  "expression": "data.index == 1.0",
+  "identifier": "12345"
+} 
+```
+
+Every subsequent call with the same **id** and **expression** will be accessing the cached expression program. For updating simply change the expression, that the cache will automatically updated with the newly compiled expression program. 
+
 ## Example gPRC
 
 The service also expose a grpc server (with the default port 50051 with TSL). The definition of the service and the models you can find in the api folder (cel-service.proto)
