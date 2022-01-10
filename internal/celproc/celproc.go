@@ -72,12 +72,18 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	context := convertJson2Map(celModel.Context)
 	ok := false
 	var prg cel.Program
+	var expression string
 	id := celModel.Identifier
 	if id != "" {
 		var entry LRUEntry
 		entry, ok = lrucache.Get(id)
 		if ok {
 			prg = entry.Program
+			expression = entry.Expression
+		}
+		// Check if we have to update the cache
+		if expression != celModel.Expression {
+			ok = false
 		}
 	}
 	if !ok {
@@ -112,11 +118,17 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 			}, err
 		}
 		if id != "" {
-			lrucache.Add(LRUEntry{
-				ID:      id,
-				Program: prg,
-			})
-			go lrucache.HandleContrains()
+			entry := LRUEntry{
+				ID:         id,
+				Expression: celModel.Expression,
+				Program:    prg,
+			}
+			if lrucache.Has(celModel.Identifier) {
+				lrucache.Update(entry)
+			} else {
+				lrucache.Add(entry)
+				go lrucache.HandleContrains()
+			}
 		}
 	}
 	out, details, err := prg.Eval(context)

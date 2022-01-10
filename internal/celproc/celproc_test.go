@@ -32,6 +32,70 @@ func TestYaml(t *testing.T) {
 	}
 }
 
+func TestCacheUpdate(t *testing.T) {
+	ast := assert.New(t)
+	context := make(map[string]interface{})
+
+	context["user"] = "willie"
+	context["number"] = 1
+
+	celModel := model.CelModel{
+		Context:    context,
+		Identifier: "willie",
+		Expression: "number == 1 && user == \"willie\"",
+	}
+	result, err := ProcCel(celModel)
+	ast.Nil(err)
+	ast.NotNil(result)
+
+	ast.Equal(true, result.Result)
+
+	context["user2"] = "wutz"
+
+	celModel = model.CelModel{
+		Context:    context,
+		Identifier: "willie",
+		Expression: "number == 1 && user2 == \"wutz\"",
+	}
+
+	result, err = ProcCel(celModel)
+	ast.Nil(err)
+	ast.NotNil(result)
+
+	ast.Equal(true, result.Result)
+}
+
+func TestWrongID(t *testing.T) {
+	ast := assert.New(t)
+	context := make(map[string]interface{})
+
+	context["user"] = "willie"
+	context["number"] = 1
+
+	celModel := model.CelModel{
+		Context:    context,
+		Identifier: "willie",
+		Expression: "number == 1 && user == \"willie\"",
+	}
+	result, err := ProcCel(celModel)
+	ast.Nil(err)
+	ast.NotNil(result)
+
+	ast.Equal(true, result.Result)
+
+	celModel = model.CelModel{
+		Context:    context,
+		Identifier: "willie",
+		Expression: "hurtz ==  \"wutz\"",
+	}
+
+	result, err = ProcCel(celModel)
+	ast.NotNil(err)
+	ast.NotNil(result)
+
+	ast.Equal(false, result.Result)
+}
+
 func TestJson(t *testing.T) {
 	ast := assert.New(t)
 

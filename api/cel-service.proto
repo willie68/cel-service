@@ -8,7 +8,7 @@ option go_package = "./pkg/protofiles";
 message CelRequest {
     google.protobuf.Struct Context = 1;
     string Expression = 2;
-    string identifier = 3;
+    string Identifier = 3;
 }
 
 message CelResponse {

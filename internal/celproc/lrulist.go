@@ -11,7 +11,8 @@ import (
 type LRUEntry struct {
 	LastAccess time.Time   `json:"lastAccess"`
 	ID         string      `json:"id"`
-	Program    cel.Program `json:"description"`
+	Expression string      `json:"expression"`
+	Program    cel.Program `json:"program"`
 }
 
 type LRUList struct {
