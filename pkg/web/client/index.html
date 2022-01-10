@@ -27,6 +27,7 @@ function afterLoad() {
     console.log("after laod");
     $('#context').val(JSON.stringify(demoContext,undefined, 2));
 	$('#expression').val('data.v1.value == 1 && data.float ==  1.1 && data.bool == true');
+	$('#identifier').val(makeid(8));
 	$('#result').val();
 }
 function onformsubmit (event) {
@@ -38,6 +39,7 @@ function doRequest() {
   var request = new Object();
   request.context = JSON.parse($('#context').val());
   request.expression = $('#expression').val();
+  request.identifier = $('#identifier').val();
   console.log(JSON.stringify(request));
   
   var xhr = new XMLHttpRequest();
@@ -58,6 +60,16 @@ function doRequest() {
   
   return false;
 }
+function makeid(length) {
+    var result           = '';
+    var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() *  charactersLength));
+   }
+   return result;
+}
+
 </script> 
 </head> 
 <body> 
@@ -67,9 +79,11 @@ powered by cel-service, <a href="https://github.com/willie68/cel-service" target
 <form onsubmit="return doRequest();">
 <input type="hidden" name="action" value="doupload"/>
 <table>
-<tr><td><label for="Context">Context*:</label></td><td><textarea id="context" name="context" rows="10" cols="50"></textarea>
+<tr><td><label for="context">Context*:</label></td><td><textarea id="context" name="context" rows="10" cols="50"></textarea>
 </td></tr>
-<tr><td><label for="link">Evaluation:</label></td><td><textarea id="expression" type="text" name="expression"  rows="5" cols="50"></textarea></td></tr>
+<tr><td><label for="expression">Evaluation:</label></td><td><textarea id="expression" type="text" name="expression"  rows="5" cols="50"></textarea></td></tr>
+<tr><td><label for="identifier">Identifier:</label></td><td><input id="identifier" name="identifier" rows="10" cols="50"></textarea>
+</td></tr>
 <tr><td></td><td><input type="submit" value="Evaluate"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;execution time <b id="actual"></b> <br/>(this is only a estimation, see network for the real time)</td></tr>
 <tr><td><label for="Result">Result:</label></td><td><textarea id="result" name="result"rows="10" cols="50"></textarea>
 </td></tr>
