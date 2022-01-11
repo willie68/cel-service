@@ -10,6 +10,8 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v3"
 
+	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/willie68/cel-service/pkg/model"
 	"github.com/willie68/cel-service/pkg/protofiles"
@@ -113,6 +115,7 @@ func TestJson(t *testing.T) {
 
 func BenchmarkJsonManyWithoutCache(t *testing.B) {
 	ast := assert.New(t)
+	ClearCache()
 
 	celModels := readJsonB("../../test/data/data1.json", t)
 	stt := time.Now()
@@ -129,12 +132,14 @@ func BenchmarkJsonManyWithoutCache(t *testing.B) {
 	}
 	ste := time.Now()
 
+	t.Logf("cache hits: %d", GetCounterValue(CacheHitCounter))
+	t.Logf("build eval: %d", GetCounterValue(BuildEvalCounter))
 	t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
 }
 
 func BenchmarkJsonManyWithCache(t *testing.B) {
 	ast := assert.New(t)
-
+	ClearCache()
 	celModels := readJsonB("../../test/data/data1.json", t)
 	stt := time.Now()
 	for i := 0; i < MAX_TEST_COUNT; i++ {
@@ -149,7 +154,19 @@ func BenchmarkJsonManyWithCache(t *testing.B) {
 	}
 	ste := time.Now()
 
+	var m = &dto.Metric{}
+	err := BuildEvalCounter.Write(m)
+	ast.Nil(err)
+
+	t.Logf("cache hits: %d", GetCounterValue(CacheHitCounter))
+	t.Logf("build eval: %d", GetCounterValue(BuildEvalCounter))
 	t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
+}
+
+func GetCounterValue(counter prometheus.Counter) int64 {
+	var m = &dto.Metric{}
+	counter.Write(m)
+	return int64(m.Counter.GetValue())
 }
 
 func TestGRPCJson(t *testing.T) {

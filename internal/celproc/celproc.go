@@ -5,23 +5,40 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	log "github.com/willie68/cel-service/internal/logging"
 
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/checker/decls"
 	"github.com/google/cel-go/common/types"
+	"github.com/willie68/cel-service/internal/lrucache"
 	"github.com/willie68/cel-service/pkg/model"
 	"github.com/willie68/cel-service/pkg/protofiles"
 	exprpb "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 )
 
-var lrucache LRUList
+type CacheEntry struct {
+	ID         string
+	Expression string
+	Program    cel.Program
+}
+
+var (
+	CacheHitCounter = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "cel_service_cache_hit_total",
+		Help: "The total number of cache hits",
+	})
+	BuildEvalCounter = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "cel_service_build_eval_total",
+		Help: "The total number of building eval",
+	})
+)
+
+var lcache lrucache.LRUCache
 
 func init() {
-	lrucache = LRUList{
-		MaxCount: int(10000),
-	}
-	lrucache.Init()
+	lcache = lrucache.New(10000)
 }
 
 func GRPCProcCel(celRequest *protofiles.CelRequest) (*protofiles.CelResponse, error) {
@@ -75,18 +92,21 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 	var expression string
 	id := celModel.Identifier
 	if id != "" {
-		var entry LRUEntry
-		entry, ok = lrucache.Get(id)
+		var e interface{}
+		e, ok = lcache.Get(id)
 		if ok {
+			entry := e.(CacheEntry)
 			prg = entry.Program
 			expression = entry.Expression
+			CacheHitCounter.Inc()
 		}
 		// Check if we have to update the cache
-		if expression != celModel.Expression {
+		if ok && (expression != celModel.Expression) {
 			ok = false
 		}
 	}
 	if !ok {
+		BuildEvalCounter.Inc()
 		var declList = make([]*exprpb.Decl, len(context))
 		x := 0
 		for k := range context {
@@ -118,17 +138,12 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 			}, err
 		}
 		if id != "" {
-			entry := LRUEntry{
+			entry := CacheEntry{
 				ID:         id,
 				Expression: celModel.Expression,
 				Program:    prg,
 			}
-			if lrucache.Has(celModel.Identifier) {
-				lrucache.Update(entry)
-			} else {
-				lrucache.Add(entry)
-				go lrucache.HandleContrains()
-			}
+			lcache.Put(id, entry)
 		}
 	}
 	out, details, err := prg.Eval(context)
@@ -160,4 +175,8 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 			Result:  false,
 		}, errors.New("unknown result type")
 	}
+}
+
+func ClearCache() {
+	lcache.Clear()
 }

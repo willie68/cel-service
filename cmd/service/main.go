@@ -86,6 +86,7 @@ func apiRoutes() (*chi.Mux, error) {
 		middleware.Logger,
 		//middleware.DefaultCompress,
 		middleware.Recoverer,
+		middleware.StripSlashes,
 		cors.Handler(cors.Options{
 			// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
 			AllowedOrigins: []string{"*"},
