@@ -76,6 +76,8 @@ func Routes() *chi.Mux {
 	router := chi.NewRouter()
 	router.Get("/livez", GetHealthyEndpoint)
 	router.Get("/readyz", GetReadinessEndpoint)
+	router.Head("/livez", GetHealthyEndpoint)
+	router.Head("/readyz", GetReadinessEndpoint)
 	return router
 }
 
@@ -85,7 +87,7 @@ GetHealthyEndpoint liveness probe
 func GetHealthyEndpoint(response http.ResponseWriter, req *http.Request) {
 	render.Status(req, http.StatusOK)
 	render.JSON(response, req, Msg{
-		Message: fmt.Sprintf("service started"),
+		Message: "service started",
 	})
 }
 
