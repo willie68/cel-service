@@ -173,7 +173,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"context\": {\r\n        \"data\": {\r\n            \"index\": 1,\r\n            \"float\": 1.1,\r\n            \"name\": \"klaas\"\r\n        }\r\n    },\r\n    \"expression\": \"data.index == 1 && data.float == 1.1 && data.name == \\\"klaas\\\"\"\r\n}",
+					"raw": "{\r\n    \"context\": {\r\n        \"data\": {\r\n            \"index\": 1,\r\n            \"float\": 1.1,\r\n            \"name\": \"klaas\"\r\n        }\r\n    },\r\n    \"expression\": \"data.index == 1 && data.float == 1.1 && data.name == \\\"klaas\\\"\",\r\n    \"identifier\": \"Willie\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -218,6 +218,42 @@
 				},
 				"url": {
 					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ssl evalutate many",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"context\": {\r\n            \"data\": {\r\n                \"index\": 1,\r\n                \"float\": 1.1,\r\n                \"name\": \"klaas\"\r\n            }\r\n        },\r\n        \"expression\": \"data.index == 1 && data.float == 1.1 && data.name == \\\"klaas\\\"\",\r\n        \"identifier\": \"1234\",\r\n        \"id\": \"1\"\r\n    },\r\n    {\r\n        \"context\": {\r\n            \"data\": {\r\n                \"index\": 2,\r\n                \"firstname\": \"wilie\"\r\n            }\r\n        },\r\n        \"expression\": \"data.index == 2 && data.firstname == \\\"willie\\\"\",\r\n        \"identifier\": \"abcd\",\r\n        \"id\": \"2\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{cel-host}}:{{cel-port-ssl}}/api/v1/evaluatemany",
+					"protocol": "https",
+					"host": [
+						"{{cel-host}}"
+					],
+					"port": "{{cel-port-ssl}}",
+					"path": [
+						"api",
+						"v1",
+						"evaluatemany"
+					]
 				}
 			},
 			"response": []

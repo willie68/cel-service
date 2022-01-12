@@ -23,8 +23,12 @@ import (
 
 var (
 	postEvalCounter = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "cel_service_post_config_total",
+		Name: "cel_service_post_eval_total",
 		Help: "The total number of post eval requests",
+	})
+	postEvalManyCounter = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "cel_service_post_eval_many_total",
+		Help: "The total number of post eval many requests",
 	})
 )
 
@@ -33,15 +37,15 @@ EvalRoutes getting all routes for the config endpoint
 */
 func EvalRoutes() *chi.Mux {
 	router := chi.NewRouter()
-	router.Post("/", PostEvalEndpoint)
+	router.Post("/evaluate", PostEval)
+	router.Post("/evaluatemany", PostEvalMany)
 	return router
 }
 
 /*
-PostEvalEndpoint create a new store for a tenant
-because of the automatic store creation, this method will always return 201
+PostEval endpoint for evaluating a single expression
 */
-func PostEvalEndpoint(response http.ResponseWriter, request *http.Request) {
+func PostEval(response http.ResponseWriter, request *http.Request) {
 	postEvalCounter.Inc()
 	var celModel model.CelModel
 	err := decode(request, &celModel)
@@ -64,7 +68,33 @@ func PostEvalEndpoint(response http.ResponseWriter, request *http.Request) {
 		render.JSON(response, request, res)
 		return
 	}
-	render.Status(request, http.StatusCreated)
+	render.Status(request, http.StatusOK)
+	render.JSON(response, request, res)
+}
+
+/*
+PostEvalMany evaluate a list of expression with contexts
+*/
+func PostEvalMany(response http.ResponseWriter, request *http.Request) {
+	postEvalManyCounter.Inc()
+	var celModels []model.CelModel
+	err := decode(request, &celModels)
+	if err != nil {
+		log.Logger.Errorf("error decoding context: %v", err)
+		msg := fmt.Sprintf("error decoding context: %v", err)
+		httputils.Err(response, request, serror.BadRequest(nil, "server-error", msg))
+		return
+	}
+	res, err := celproc.ProcCelMany(celModels)
+	log.Logger.Infof("req: %v, res: %v", celModels, res)
+	if err != nil {
+		log.Logger.Errorf("processing error: %v", err)
+		render.Status(request, http.StatusBadRequest)
+		render.JSON(response, request, res)
+		return
+	}
+
+	render.Status(request, http.StatusOK)
 	render.JSON(response, request, res)
 }
 

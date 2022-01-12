@@ -160,7 +160,7 @@ func apiRoutes() (*chi.Mux, error) {
 
 	// building the routes
 	router.Route("/", func(r chi.Router) {
-		r.Mount(baseURL+"/evaluate", apiv1.EvalRoutes())
+		r.Mount(baseURL, apiv1.EvalRoutes())
 		r.Mount("/", health.Routes())
 		if serviceConfig.Metrics.Enable {
 			r.Mount("/metrics", promhttp.Handler())

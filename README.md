@@ -90,12 +90,39 @@ The service has implemented an expression cache. Most time consuming operations 
           "index": 1
       }
   },
-  "expression": "data.index == 1.0",
+  "expression": "data.index == 1",
   "identifier": "12345"
 } 
 ```
 
-Every subsequent call with the same **id** and **expression** will be accessing the cached expression program. For updating simply change the expression, that the cache will automatically updated with the newly compiled expression program. 
+Every subsequent call with the same **identifier** and **expression** will be accessing the cached expression program. For updating simply change the expression, that the cache will automatically updated with the newly compiled expression program. 
+
+## Evaluating many expressions
+
+You can evaluate many expressions at the same time. Therefor there is another endpoint `"/evaluatemany"` to send an array of requests and get back an array of responses.
+
+```sh
+curl --location --request POST 'https://127.0.0.1:9543/api/v1/evaluatemany' \
+--header 'Content-Type: application/json' \
+--data-raw '[{"context": {"data": {"index": 1,"float": 1.1,"name": "klaas"}}, "expression": "data.index == 1 && data.float == 1.1 && data.name == \"klaas\"", "identifier": "1234", "id": "1" },{"context": {"data": {"index": 2,"firstname": "wilie"}}, "expression": "data.index == 2 && data.firstname == \"willie\"", "identifier": "abcd", "id": "2"}]'
+```
+
+As a response you will get:
+
+```json
+[{ "id": "1",
+  "error": "",
+  "message": "result ok: true",
+  "result": true
+},
+{ "id": "2",
+  "error": "",
+  "message": "result ok: false",
+  "result": false
+}]
+```
+
+Be aware, `id` is the id of the single request, as `identifier` is the expression identifier. Caching will work here, too.
 
 ## Example gPRC
 

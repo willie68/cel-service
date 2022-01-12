@@ -86,64 +86,32 @@ func convertJson2Map(src map[string]interface{}) (dst map[string]interface{}) {
 }
 
 func ProcCel(celModel model.CelModel) (model.CelResult, error) {
+	if celModel.Expression == "" {
+		return model.CelResult{
+			Id:      celModel.Id,
+			Error:   "expression should not be empty.",
+			Message: "expression should not be empty.",
+			Result:  false,
+		}, errors.New("expression should not be empty.")
+	}
 	context := convertJson2Map(celModel.Context)
 	ok := false
 	var prg cel.Program
 	var expression string
+	var err error
+	var res model.CelResult
 	id := celModel.Identifier
 	if id != "" {
-		var e interface{}
-		e, ok = lcache.Get(id)
-		if ok {
-			entry := e.(CacheEntry)
-			prg = entry.Program
-			expression = entry.Expression
-			CacheHitCounter.Inc()
-		}
+		ok, prg, expression = getFromCache(id)
 		// Check if we have to update the cache
 		if ok && (expression != celModel.Expression) {
 			ok = false
 		}
 	}
 	if !ok {
-		BuildEvalCounter.Inc()
-		var declList = make([]*exprpb.Decl, len(context))
-		x := 0
-		for k := range context {
-			declList[x] = decls.NewVar(k, decls.Dyn)
-			x++
-		}
-		env, err := cel.NewEnv(
-			cel.Declarations(
-				declList...,
-			),
-		)
+		prg, res, err = creatEvalProgram(context, celModel.Expression, celModel.Identifier)
 		if err != nil {
-			log.Logger.Errorf("env declaration error: %s", err)
-		}
-		ast, issues := env.Compile(celModel.Expression)
-		if issues != nil && issues.Err() != nil {
-			log.Logger.Errorf("type-check error: %v", issues.Err())
-			return model.CelResult{
-				Error:   fmt.Sprintf("%v", issues.Err()),
-				Message: issues.Err().Error(),
-			}, issues.Err()
-		}
-		prg, err = env.Program(ast)
-		if err != nil {
-			log.Logger.Errorf("program construction error: %v", err)
-			return model.CelResult{
-				Error:   fmt.Sprintf("%v", err),
-				Message: fmt.Sprintf("program construction error: %s", err.Error()),
-			}, err
-		}
-		if id != "" {
-			entry := CacheEntry{
-				ID:         id,
-				Expression: celModel.Expression,
-				Program:    prg,
-			}
-			lcache.Put(id, entry)
+			return res, err
 		}
 	}
 	out, details, err := prg.Eval(context)
@@ -157,22 +125,103 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 			Message: fmt.Sprintf("program evaluation error: %s\r\ndetails: %s", err.Error(), details),
 		}, err
 	}
+	return createCelResult(celModel.Id, out, err)
+}
+
+func ProcCelMany(celModels []model.CelModel) ([]model.CelResult, error) {
+	results := make([]model.CelResult, len(celModels))
+	idErrList := make([]string, 0)
+	for x, celModel := range celModels {
+		res, lerr := ProcCel(celModel)
+		if lerr != nil {
+			idErrList = append(idErrList, celModel.Id)
+		}
+		results[x] = res
+	}
+	var err error
+	err = nil
+	if len(idErrList) > 0 {
+		err = fmt.Errorf("error in one of the results. Please check: %v", idErrList)
+	}
+	return results, err
+}
+
+func getFromCache(id string) (ok bool, prg cel.Program, expression string) {
+	var e interface{}
+	e, ok = lcache.Get(id)
+	if ok {
+		entry := e.(CacheEntry)
+		prg = entry.Program
+		expression = entry.Expression
+		CacheHitCounter.Inc()
+	}
+	return
+}
+
+func creatEvalProgram(context map[string]interface{}, expression string, id string) (cel.Program, model.CelResult, error) {
+	var prg cel.Program
+	BuildEvalCounter.Inc()
+	var declList = make([]*exprpb.Decl, len(context))
+	x := 0
+	for k := range context {
+		declList[x] = decls.NewVar(k, decls.Dyn)
+		x++
+	}
+	env, err := cel.NewEnv(
+		cel.Declarations(
+			declList...,
+		),
+	)
+	if err != nil {
+		log.Logger.Errorf("env declaration error: %s", err)
+	}
+	ast, issues := env.Compile(expression)
+	if issues != nil && issues.Err() != nil {
+		log.Logger.Errorf("type-check error: %v", issues.Err())
+		return nil, model.CelResult{
+			Error:   fmt.Sprintf("%v", issues.Err()),
+			Message: issues.Err().Error(),
+		}, issues.Err()
+	}
+	prg, err = env.Program(ast)
+	if err != nil {
+		log.Logger.Errorf("program construction error: %v", err)
+		return nil, model.CelResult{
+			Error:   fmt.Sprintf("%v", err),
+			Message: fmt.Sprintf("program construction error: %s", err.Error()),
+		}, err
+	}
+	if id != "" {
+		entry := CacheEntry{
+			ID:         id,
+			Expression: expression,
+			Program:    prg,
+		}
+		lcache.Put(id, entry)
+	}
+	return prg, model.CelResult{}, nil
+}
+
+func createCelResult(id string, out interface{}, err error) (model.CelResult, error) {
 	switch v := out.(type) {
 	case types.Bool:
 		return model.CelResult{
 			Message: fmt.Sprintf("result ok: %v", v),
 			Result:  v == types.True,
+			Id:      id,
 		}, nil
 	case *types.Err:
 		return model.CelResult{
 			Error:   fmt.Sprintf("%v", err),
 			Message: fmt.Sprintf("unknown cel engine error: %v", err),
 			Result:  false,
+			Id:      id,
 		}, err
 	default:
 		return model.CelResult{
 			Message: "unknown result type",
 			Result:  false,
+			Id:      id,
 		}, errors.New("unknown result type")
 	}
 }

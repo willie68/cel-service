@@ -98,6 +98,22 @@ func TestWrongID(t *testing.T) {
 	ast.Equal(false, result.Result)
 }
 
+func TestEmptyExpression(t *testing.T) {
+	ast := assert.New(t)
+	context := make(map[string]interface{})
+	context["value"] = "test"
+	celModel := model.CelModel{
+		Context:    context,
+		Identifier: "1234",
+	}
+
+	result, err := ProcCel(celModel)
+	ast.NotNil(err)
+	ast.NotNil(result)
+
+	ast.False(result.Result)
+}
+
 func TestJson(t *testing.T) {
 	ast := assert.New(t)
 
@@ -113,54 +129,77 @@ func TestJson(t *testing.T) {
 	}
 }
 
+func TestJsonMany(t *testing.T) {
+	ast := assert.New(t)
+
+	testCelModels := readJson("../../test/data/data1.json", t)
+	celModels := make([]model.CelModel, len(testCelModels))
+	for x, tcm := range testCelModels {
+		celModels[x] = tcm.Request
+	}
+	res, err := ProcCelMany(celModels)
+	ast.Nil(err)
+
+	for x, cm := range testCelModels {
+		ast.NotNil(res[x])
+
+		ast.Equal(cm.Result, res[x].Result)
+	}
+}
+
 func BenchmarkJsonManyWithoutCache(t *testing.B) {
 	ast := assert.New(t)
-	ClearCache()
-
 	celModels := readJsonB("../../test/data/data1.json", t)
-	stt := time.Now()
-	for i := 0; i < MAX_TEST_COUNT; i++ {
-		for _, cm := range celModels {
-			cm.Request.Context = convertJson2Map(cm.Request.Context)
-			cm.Request.Identifier = "" //fmt.Sprintf("%d_%d", i, x)
-			result, err := ProcCel(cm.Request)
-			ast.Nil(err)
-			ast.NotNil(result)
+	for x := 0; x < t.N; x++ {
+		ClearCache()
 
-			ast.Equal(cm.Result, result.Result)
+		stt := time.Now()
+		for i := 0; i < MAX_TEST_COUNT; i++ {
+			for _, cm := range celModels {
+				cm.Request.Context = convertJson2Map(cm.Request.Context)
+				cm.Request.Identifier = "" //fmt.Sprintf("%d_%d", i, x)
+				result, err := ProcCel(cm.Request)
+				ast.Nil(err)
+				ast.NotNil(result)
+
+				ast.Equal(cm.Result, result.Result)
+			}
 		}
-	}
-	ste := time.Now()
+		ste := time.Now()
 
-	t.Logf("cache hits: %d", GetCounterValue(CacheHitCounter))
-	t.Logf("build eval: %d", GetCounterValue(BuildEvalCounter))
-	t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
+		t.Logf("cache hits: %d", GetCounterValue(CacheHitCounter))
+		t.Logf("build eval: %d", GetCounterValue(BuildEvalCounter))
+		t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
+	}
 }
 
 func BenchmarkJsonManyWithCache(t *testing.B) {
 	ast := assert.New(t)
-	ClearCache()
 	celModels := readJsonB("../../test/data/data1.json", t)
-	stt := time.Now()
-	for i := 0; i < MAX_TEST_COUNT; i++ {
-		for _, cm := range celModels {
-			cm.Request.Context = convertJson2Map(cm.Request.Context)
-			result, err := ProcCel(cm.Request)
-			ast.Nil(err)
-			ast.NotNil(result)
 
-			ast.Equal(cm.Result, result.Result)
+	for x := 0; x < t.N; x++ {
+		ClearCache()
+		stt := time.Now()
+		for i := 0; i < MAX_TEST_COUNT; i++ {
+			for _, cm := range celModels {
+				cm.Request.Context = convertJson2Map(cm.Request.Context)
+				result, err := ProcCel(cm.Request)
+				ast.Nil(err)
+				ast.NotNil(result)
+
+				ast.Equal(cm.Result, result.Result)
+			}
 		}
+		ste := time.Now()
+
+		var m = &dto.Metric{}
+		err := BuildEvalCounter.Write(m)
+		ast.Nil(err)
+
+		t.Logf("cache hits: %d", GetCounterValue(CacheHitCounter))
+		t.Logf("build eval: %d", GetCounterValue(BuildEvalCounter))
+		t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
 	}
-	ste := time.Now()
-
-	var m = &dto.Metric{}
-	err := BuildEvalCounter.Write(m)
-	ast.Nil(err)
-
-	t.Logf("cache hits: %d", GetCounterValue(CacheHitCounter))
-	t.Logf("build eval: %d", GetCounterValue(BuildEvalCounter))
-	t.Logf("execution: %d", ste.Sub(stt).Milliseconds())
 }
 
 func GetCounterValue(counter prometheus.Counter) int64 {
