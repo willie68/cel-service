@@ -102,8 +102,8 @@ func apiRoutes() (*chi.Mux, error) {
 			ServiceVersion: apiVersion,
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
-				return false
-				//return r.URL.Path == "/livez"
+				result := r.URL.Path == "/livez" || r.URL.Path == "/readyz" || r.URL.Path == "/metrics"
+				return result
 			},
 			Tags: map[string]interface{}{
 				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
@@ -177,18 +177,6 @@ func healthRoutes() *chi.Mux {
 		middleware.Logger,
 		//middleware.DefaultCompress,
 		middleware.Recoverer,
-		httptracer.Tracer(Tracer, httptracer.Config{
-			ServiceName:    config.Servicename,
-			ServiceVersion: apiVersion,
-			SampleRate:     1,
-			SkipFunc: func(r *http.Request) bool {
-				return false
-			},
-			Tags: map[string]interface{}{
-				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
-				// "_dd1.sr.eausr": 1, // datadog, event sample rate
-			},
-		}),
 	)
 
 	router.Route("/",
@@ -201,6 +189,15 @@ func healthRoutes() *chi.Mux {
 	return router
 }
 
+// @title MCS Cel service API
+// @version 1.0
+// @description REST and gRPC service for evaluating an expression using google cel (https://opensource.google/projects/cel)
+// @BasePath /api/v1
+// @securityDefinitions.apikey api_key
+// @in header
+// @name apikey
+// @tag.name evaluation
+// @tag.description CEL evaluation
 func main() {
 	configFolder, err := config.GetDefaultConfigFolder()
 	if err != nil {

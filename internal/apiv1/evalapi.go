@@ -42,9 +42,18 @@ func EvalRoutes() *chi.Mux {
 	return router
 }
 
-/*
-PostEval endpoint for evaluating a single expression
-*/
+// PostEval Evaluates the given context from payload against the specified CEL expression
+// @Summary Post Evaluation
+// @Description Evaluates the given context from payload against the specified CEL expression
+// @Tags evaluation
+// @Accept  json
+// @Produce  json
+// @Security apikey
+// @Param payload body model.CelModel true "Context and expression"
+// @Success 201 {object} model.CelResult "Evaluation result"
+// @Failure 400 {object} serror.Serr "client error information as json"
+// @Failure 500 {object} serror.Serr "server error information as json"
+// @Router /evaluate [post]
 func PostEval(response http.ResponseWriter, request *http.Request) {
 	postEvalCounter.Inc()
 	var celModel model.CelModel
@@ -72,9 +81,18 @@ func PostEval(response http.ResponseWriter, request *http.Request) {
 	render.JSON(response, request, res)
 }
 
-/*
-PostEvalMany evaluate a list of expression with contexts
-*/
+// PostEvalMany Evaluates a list of context/expression from payload 
+// @Summary Post Evaluation Many
+// @Description Evaluates a list of given context from payload against the CEL expression
+// @Tags evaluation
+// @Accept  json
+// @Produce  json
+// @Security apikey
+// @Param payload body []model.CelModel true "Context and expression"
+// @Success 201 {object} []model.CelResult "Evaluation result"
+// @Failure 400 {object} serror.Serr "client error information as json"
+// @Failure 500 {object} serror.Serr "server error information as json"
+// @Router /evaluatemany [post]
 func PostEvalMany(response http.ResponseWriter, request *http.Request) {
 	postEvalManyCounter.Inc()
 	var celModels []model.CelModel
@@ -105,10 +123,10 @@ var Validate *validator.Validate = validator.New()
 func decode(r *http.Request, v interface{}) error {
 	err := defaultDecoder(r, v)
 	if err != nil {
-		serror.BadRequest(err, "decode-body", "could not decode body")
+		return serror.BadRequest(err, "decode-body", "could not decode body")
 	}
 	if err := Validate.Struct(v); err != nil {
-		serror.BadRequest(err, "validate-body", "body invalid")
+		return serror.BadRequest(err, "validate-body", "body invalid")
 	}
 	return nil
 }

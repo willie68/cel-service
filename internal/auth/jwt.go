@@ -11,8 +11,7 @@ import (
 )
 
 type JWTAuthConfig struct {
-	Validate  bool
-	TenantKey string
+	Validate bool
 }
 
 type JWT struct {
@@ -34,10 +33,6 @@ func ParseJWTConfig(cfg config.Authentcation) (JWTAuthConfig, error) {
 	if err != nil {
 		return jwtcfg, err
 	}
-	//	jwtcfg.TenantKey, err = config.GetConfigValueAsString(cfg.Properties, "tenantKey")
-	//	if err != nil {
-	//		return jwtcfg, err
-	//	}
 	return jwtcfg, nil
 }
 

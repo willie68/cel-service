@@ -29,7 +29,7 @@ func runEvaluate(client protofiles.EvalServiceClient) {
 	}
 	structValue, err := structpb.NewStruct(jsonContext)
 	if err != nil {
-		log.Logger.Fatalf("structpb new: %v", client, err)
+		log.Logger.Fatalf("structpb new: %v", err)
 	}
 
 	celRequest := protofiles.CelRequest{
