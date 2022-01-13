@@ -71,7 +71,7 @@ var DefaultConfig = Config{
 	Sslport:    8443,
 	ServiceURL: "https://127.0.0.1:8443",
 	SecretFile: "",
-	Apikey:     true,
+	Apikey:     false,
 	HealthCheck: HealthCheck{
 		Period: 30,
 	},
@@ -110,7 +110,7 @@ var config = Config{
 	Port:       0,
 	Sslport:    0,
 	ServiceURL: "http://127.0.0.1",
-	Apikey:     true,
+	Apikey:     false,
 	HealthCheck: HealthCheck{
 		Period: 30,
 	},
@@ -159,6 +159,6 @@ func readSecret() error {
 }
 
 func mergeSecret(secret Secret) {
-	//	config.MongoDB.Username = secret.MongoDB.Username
-	//	config.MongoDB.Password = secret.MongoDB.Password
+// if you use a secret file for something, than at this point you have to copy the content of the secretfile to the actual config
+// like: config.Apikey = secret.Apikey
 }

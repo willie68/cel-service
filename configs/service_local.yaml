@@ -8,8 +8,9 @@ grpctsl: false
 grpcport: 50051
 # this is the servicURL from outside
 serviceURL: http://127.0.0.1:9180
-#sercret file for storing usernames and passwords
-secretfile: configs/secret.yaml
+# sercret file for storing usernames and passwords, not needed here
+#secretfile: 
+# de/activating usage of an apikey
 apikey: false
 
 logging:

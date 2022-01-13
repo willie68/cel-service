@@ -8,8 +8,9 @@ grpctsl: true
 grpcport: 50051
 # this is the servicURL from outside
 serviceURL: http://127.0.0.1:8080
-#sercret file for storing usernames and passwords
-secretfile: /config/secret.yaml
+# sercret file for storing usernames and passwords, not needed here
+#secretfile: 
+# de/activating usage of an apikey
 apikey: false
 
 logging:
@@ -24,3 +25,10 @@ healthcheck:
 # enable/disable metrics 
 metrics:
   enable: true
+
+# open tracing settings
+opentracing:
+  # local agent host and port
+  host:
+  # or endpoint to jaeger collector
+  endpoint:

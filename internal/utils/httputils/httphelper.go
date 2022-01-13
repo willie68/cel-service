@@ -8,40 +8,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
-	"github.com/willie68/cel-service/internal/api"
-	"github.com/willie68/cel-service/internal/auth"
 	"github.com/willie68/cel-service/internal/serror"
 )
 
 // Validate validator
 var Validate *validator.Validate
 
-// TenantID gets the tenant-id of the given request
-func TenantID(r *http.Request) (string, error) {
-	var id string
-	_, claims, _ := auth.FromContext(r.Context())
-	if claims != nil {
-		tenant, ok := claims["Tenant"].(string)
-		if ok {
-			return tenant, nil
-		}
-	}
-	id = r.Header.Get(api.TenantHeaderKey)
-	if id == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
-		return "", serror.BadRequest(nil, "missing-tenant", msg)
-	}
-	return id, nil
-}
-
 // Decode decodes and validates an object
 func Decode(r *http.Request, v interface{}) error {
 	err := render.DefaultDecoder(r, v)
 	if err != nil {
-		serror.BadRequest(err, "decode-body", "could not decode body")
+		return serror.BadRequest(err, "decode-body", "could not decode body")
 	}
 	if err := Validate.Struct(v); err != nil {
-		serror.BadRequest(err, "validate-body", "body invalid")
+		return serror.BadRequest(err, "validate-body", "body invalid")
 	}
 	return nil
 }

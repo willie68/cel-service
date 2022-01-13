@@ -1,16 +1,15 @@
 openapi: 3.0.0
 info:
   description: >-
-    The cel-service service is a template for all microservices written in go for
-    our dm product.
+    The cel-service is a services written in go for evaluating an expression against a given context.
   version: "1.0.0-oas3"
   title: cel-service
-  termsOfService: 'http://www.easy.de/'
+  termsOfService: 'http://www.wk-music.de/'
   contact:
-    email: info@easy.de
+    email: info@wk-music.de
   license:
-    name: EASY License
-    url: 'http://www.easy.de/'
+    name: Apache License 2.0 
+    url: https://github.com/willie68/cel-service/blob/main/LICENSE
 tags:
   - name: health
     description: readiness/healthcheck endpoints
@@ -50,5 +49,5 @@ components:
   securitySchemes:
     api_key:
       type: apiKey
-      name: X-es-apikey
+      name: apikey
       in: header

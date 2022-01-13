@@ -33,7 +33,6 @@ A simple curl example for the service:
 
 ```sh
 curl --location --request POST 'https://127.0.0.1:9543/api/v1/evaluate' \
---header 'apikey: 8723a34c54a53c70071cf86dfb1d8744' \
 --header 'Content-Type: application/json' \
 --data-raw '{"context": {"data": {"index": 1}},"expression": "data.index == 1"}'
 ```
