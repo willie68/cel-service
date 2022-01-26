@@ -90,7 +90,10 @@ func GetReadiness(response http.ResponseWriter, req *http.Request) {
 	t := time.Now()
 	if t.Sub(lastChecked) > (time.Second * time.Duration(2*period)) {
 		healthy = false
-		healthmessage = "Healthcheck not running"
+		healthmessage = "health check not running"
+		if t.Sub(lastChecked) > (time.Second * time.Duration(4*period)) {
+			panic("panic: health check is not running anymore")
+		}
 	}
 	if healthy {
 		render.Status(req, http.StatusOK)
