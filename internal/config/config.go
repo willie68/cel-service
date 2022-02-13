@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -87,7 +88,7 @@ func GetDefaultConfigFolder() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	configFolder := fmt.Sprintf("%s/%s", home, Servicename)
+	configFolder := filepath.Join(home, Servicename)
 	err = os.MkdirAll(configFolder, os.ModePerm)
 	if err != nil {
 		return "", err
@@ -106,18 +107,14 @@ func ReplaceConfigdir(s string) (string, error) {
 	return s, nil
 }
 
-var config = Config{
-	Port:       0,
-	Sslport:    0,
-	ServiceURL: "http://127.0.0.1",
-	Apikey:     false,
-	HealthCheck: HealthCheck{
-		Period: 30,
-	},
-}
+var config = Config{}
 
 // File the config file
-var File = "config/service.yaml"
+var File = "${configdir}/service.yaml"
+
+func init() {
+	config = DefaultConfig
+}
 
 // Get returns loaded config
 func Get() Config {
@@ -126,7 +123,12 @@ func Get() Config {
 
 // Load loads the config
 func Load() error {
-	_, err := os.Stat(File)
+	myFile, err := ReplaceConfigdir(File)
+	if err != nil {
+		return fmt.Errorf("can't get default config folder: %s", err.Error())
+	}
+	File = myFile
+	_, err = os.Stat(myFile)
 	if err != nil {
 		return err
 	}
@@ -134,7 +136,8 @@ func Load() error {
 	if err != nil {
 		return fmt.Errorf("can't load config file: %s", err.Error())
 	}
-	err = yaml.Unmarshal(data, &config)
+	dataStr := os.ExpandEnv(string(data))
+	err = yaml.Unmarshal([]byte(dataStr), &config)
 	if err != nil {
 		return fmt.Errorf("can't unmarshal config file: %s", err.Error())
 	}

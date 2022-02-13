@@ -8,6 +8,7 @@ Features:
 - gRPC and HTTP JSON APIs
 - simple API to evaluate an expression
 - go 1.17
+- automatic config substitution 
 
 ## Installation
 
