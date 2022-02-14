@@ -81,7 +81,7 @@ func PostEval(response http.ResponseWriter, request *http.Request) {
 	render.JSON(response, request, res)
 }
 
-// PostEvalMany Evaluates a list of context/expression from payload 
+// PostEvalMany Evaluates a list of context/expression from payload
 // @Summary Post Evaluation Many
 // @Description Evaluates a list of given context from payload against the CEL expression
 // @Tags evaluation
@@ -96,7 +96,7 @@ func PostEval(response http.ResponseWriter, request *http.Request) {
 func PostEvalMany(response http.ResponseWriter, request *http.Request) {
 	postEvalManyCounter.Inc()
 	var celModels []model.CelModel
-	err := decode(request, &celModels)
+	err := defaultDecoder(request, &celModels)
 	if err != nil {
 		log.Logger.Errorf("error decoding context: %v", err)
 		msg := fmt.Sprintf("error decoding context: %v", err)

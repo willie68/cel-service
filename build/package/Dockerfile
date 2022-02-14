@@ -67,7 +67,6 @@ ENV IMG_VERSION="${RELEASE}"
 
 COPY --from=builder /src/cel-service /usr/local/bin/
 COPY --from=builder /src/configs/service.yaml /config/
-COPY --from=builder /src/configs/secret.yaml /config/
 COPY --from=builder /usr/share/rundeps /usr/share/rundeps
 
 RUN set -eux; \

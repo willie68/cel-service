@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/drone/envsubst"
 	"gopkg.in/yaml.v3"
 )
 
@@ -139,6 +140,10 @@ func Load() error {
 	dataStr := os.ExpandEnv(string(data))
 	err = yaml.Unmarshal([]byte(dataStr), &config)
 	if err != nil {
+		return fmt.Errorf("can't substitute config file: %s", err.Error())
+	}
+	err = yaml.Unmarshal([]byte(dataStr), &config)
+	if err != nil {
 		return fmt.Errorf("can't unmarshal config file: %s", err.Error())
 	}
 	return readSecret()
@@ -162,6 +167,6 @@ func readSecret() error {
 }
 
 func mergeSecret(secret Secret) {
-// if you use a secret file for something, than at this point you have to copy the content of the secretfile to the actual config
-// like: config.Apikey = secret.Apikey
+	// if you use a secret file for something, than at this point you have to copy the content of the secretfile to the actual config
+	// like: config.Apikey = secret.Apikey
 }
