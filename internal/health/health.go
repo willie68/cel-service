@@ -72,8 +72,8 @@ func Routes() *chi.Mux {
 	router := chi.NewRouter()
 	router.Get("/livez", GetLiveness)
 	router.Get("/readyz", GetReadiness)
-	router.Head("/livez", GetLiveness)
-	router.Head("/readyz", GetReadiness)
+	router.Head("/livez", HeadLiveness)
+	router.Head("/readyz", HeadReadiness)
 	return router
 }
 
@@ -85,16 +85,15 @@ func GetLiveness(response http.ResponseWriter, req *http.Request) {
 	})
 }
 
+// HeadLiveness liveness probe
+func HeadLiveness(response http.ResponseWriter, req *http.Request) {
+	render.Status(req, http.StatusOK)
+	render.NoContent(response, req)
+}
+
 // GetReadiness is this service ready for taking requests, e.g. formaly known as health checks
 func GetReadiness(response http.ResponseWriter, req *http.Request) {
-	t := time.Now()
-	if t.Sub(lastChecked) > (time.Second * time.Duration(2*period)) {
-		healthy = false
-		healthmessage = "health check not running"
-		if t.Sub(lastChecked) > (time.Second * time.Duration(4*period)) {
-			panic("panic: health check is not running anymore")
-		}
-	}
+	checkHealthCheckTimer()
 	if healthy {
 		render.Status(req, http.StatusOK)
 		render.JSON(response, req, Msg{
@@ -110,9 +109,26 @@ func GetReadiness(response http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// sendMessage sending a span message to tracer
-func sendMessage(tracer opentracing.Tracer, message string) {
-	span := tracer.StartSpan("say-hello")
-	println(message)
-	span.Finish()
+// HeadReadiness is this service ready for taking requests, e.g. formaly known as health checks
+func HeadReadiness(response http.ResponseWriter, req *http.Request) {
+	checkHealthCheckTimer()
+	if healthy {
+		render.Status(req, http.StatusOK)
+	} else {
+		render.Status(req, http.StatusServiceUnavailable)
+	}
+	render.NoContent(response, req)
+}
+
+// checking if the health system (namly the timer task) is working or stopped
+func checkHealthCheckTimer() {
+	t := time.Now()
+	if t.Sub(lastChecked) > (time.Second * time.Duration(2*period)) {
+		healthy = false
+		healthmessage = "health check not running"
+		if t.Sub(lastChecked) > (time.Second * time.Duration(4*period)) {
+			log.Logger.Error("panic: health check is not running anymore")
+			panic("panic: health check is not running anymore")
+		}
+	}
 }

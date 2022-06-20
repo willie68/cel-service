@@ -77,7 +77,7 @@ func PostEval(response http.ResponseWriter, request *http.Request) {
 		render.JSON(response, request, res)
 		return
 	}
-	render.Status(request, http.StatusOK)
+	render.Status(request, http.StatusCreated)
 	render.JSON(response, request, res)
 }
 
@@ -112,7 +112,7 @@ func PostEvalMany(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	render.Status(request, http.StatusOK)
+	render.Status(request, http.StatusCreated)
 	render.JSON(response, request, res)
 }
 

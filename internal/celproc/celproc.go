@@ -122,7 +122,7 @@ func ProcCel(celModel model.CelModel) (model.CelResult, error) {
 
 		return model.CelResult{
 			Error:   fmt.Sprintf("%v", err),
-			Message: fmt.Sprintf("program evaluation error: %s\r\ndetails: %s", err.Error(), details),
+			Message: fmt.Sprintf("program evaluation error: %s\r\ndetails: %v", err.Error(), details),
 		}, err
 	}
 	return createCelResult(celModel.Id, out, err)
